@@ -1,0 +1,3 @@
+= Sinatra Example
+
+Samples taken from https://github.com/remi/sinatra-kickstart

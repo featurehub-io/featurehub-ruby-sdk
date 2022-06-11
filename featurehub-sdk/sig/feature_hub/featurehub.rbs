@@ -1,0 +1,187 @@
+module FeatureHub
+  module Sdk
+    VERSION: String
+    # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+    #
+
+    class FeatureState
+      attr_reader key: Symbol
+
+      def initialize: (key: String, repo: InternalFeatureRepository,
+          feature_state: Hash[untyped, untyped]?, parent_state: FeatureState?, ctx: ClientContext?) -> void
+
+      def locked?: -> bool
+      def exists?: (top_feature: FeatureState?) -> bool
+      def id: -> String?
+      def feature_type: -> String?
+
+      def with_context: (ctx: ClientContext) -> FeatureState
+
+      def update_feature_state: (feature_state: Hash[untyped, untyped]) -> void
+      # this is the feature state of the top level, it always walks up
+      def feature_state: () -> Hash[untyped, untyped]
+
+      # this is strictly the internal feature state, further down from the top level it will be nil
+      def internal_feature_state: () -> Hash[untyped, untyped]
+
+      def value: () -> [bool? | String? | Float?]
+
+      def version: () -> int
+
+      def string: () -> String?
+
+      def number: () -> Float
+
+      def raw_json: () -> String?
+
+      def boolean: () -> bool?
+
+      def flag: () -> bool?
+
+      def enabled?: () -> bool
+
+      def set?: () -> bool?
+
+      private
+
+      def top_feature_state: -> FeatureState
+
+      def _feature_state: -> Hash[untyped, untyped]
+
+      def _set_feature_state: (feature_state: Hash[untyped, untyped]) -> void
+
+      def get_value: (feature_type: String?) -> [bool? | String? | Float?]
+    end
+
+    class Applied
+      attr_reader matched: bool
+      attr_reader value: [bool? | String? | Float?]
+
+      def initialize:(matched: bool, value: [bool? | String? | Float?]) -> void
+    end
+
+    class InterceptorValue
+      def initialize: (val: [bool? | String? | Float? ]) -> void
+      def cast:(feature_type: String?) -> [bool? | String? | Float? ]
+    end
+
+    class ValueInterceptor
+      def intercepted_value: (feature_key: Symbol) -> InterceptorValue?
+    end
+
+    class EnvironmentInterceptor <  ValueInterceptor
+    end
+
+    class RolloutStrategy
+
+    end
+
+    class ApplyFeatures
+
+    end
+
+    class InternalFeatureRepository
+      def feature: (key: String) -> FeatureState?
+      def find_interceptor: (feature_value: String) -> InterceptorValue?
+      def ready?: -> bool
+      def not_ready!: -> void
+      def apply: (strategies: Array[RolloutStrategy], key: String, feature_id: String, context: ClientContext) -> Applied
+      def notify: (status: String, data: Hash[untyped, untyped]) -> void
+    end
+
+    class FeatureHubRepository < InternalFeatureRepository
+      @features: Hash[String, FeatureState]
+      @ready: bool
+
+      def initialize: (apply_features: nil | ApplyFeatures ) -> void
+      def apply:(strategies: Array[RolloutStrategy], key: String, feature_id: String, context: ClientContext) -> Applied
+
+      def notify: (status: String, data: Hash[untyped, untyped]) -> void
+      def feature: (key: String) -> FeatureState
+      def register_interceptor: (interceptor: ValueInterceptor) -> void
+
+      def find_interceptor: (feature_value: String) -> InterceptorValue?
+      def ready?: -> bool
+      def not_ready!: -> void
+
+      def extract_feature_state: -> Array[Hash[untyped, untyped]]
+    end
+
+    class ClientContext
+      attr_reader repo: InternalFeatureRepository
+
+      def initialize: (repository: InternalFeatureRepository) -> void
+      def user_key: (value: String) -> ClientContext
+      def session_key: (value: String) -> ClientContext
+      def version: (value: String) -> ClientContext
+      def country: (value: Symbol ) -> ClientContext
+      def platform: (value: Symbol ) -> ClientContext
+      def device: (value: Symbol ) -> ClientContext
+      def attribute_value: (key: String, values: Array[String] ) -> ClientContext
+      def clear: -> ClientContext
+      def get_attr: (key: String, default_val: String?) -> String?
+      def default_percentage_key: -> String?
+      def enabled: (key: String) -> bool?
+
+      def feature: (key: String) -> FeatureState
+      def set?: (key: String) -> bool?
+      def number: (key: String) -> Float?
+      def string: (key: String) -> String?
+      def json: (key: String) -> Hash[untyped, untyped]?
+      def raw_json: (key: String) -> String?
+      def flag: (key: String) -> bool?
+      def boolean: (key: String) -> bool?
+      def exists?: (key: String) -> bool
+
+      def build: -> ClientContext
+      def build_sync: -> ClientContext
+      def close: -> ClientContext
+    end
+
+    class EdgeService
+      def initialize: (repository: InternalFeatureRepository, api_keys: Array[String], edge_url: String) -> void
+      def poll: -> void
+      def context_change: (new_header: String?) -> void
+      def close: -> void
+    end
+
+    class ServerEvalFeatureContext < ClientContext
+      @edge: EdgeService
+
+      def initialize: (repository: InternalFeatureRepository, edge: EdgeService) -> void
+    end
+
+    class ClientEvalFeatureContext < ClientContext
+      @edge: EdgeService
+
+      def initialize: (repository: InternalFeatureRepository, edge: EdgeService) -> void
+    end
+
+    class FeatureHubConfig
+      attr_reader edge_url: String
+      attr_reader api_keys: Array[String]
+      attr_reader client_evaluated: bool
+
+      def initialize: (edge_url: String, api_keys: Array[String], repository: InternalFeatureRepository) -> void
+
+      def repository: (repository: InternalFeatureRepository?) -> InternalFeatureRepository
+
+      def init: -> void
+
+      def get_or_create_edge_service: -> EdgeService
+
+      # can't figure this out
+      # def edge_service_provider:
+      #
+      def use_polling_edge_service: (interval: int?) -> void
+
+      def new_context: -> ClientContext
+
+      def close: -> void
+    end
+
+    class PollingEdgeService
+
+    end
+  end
+end
