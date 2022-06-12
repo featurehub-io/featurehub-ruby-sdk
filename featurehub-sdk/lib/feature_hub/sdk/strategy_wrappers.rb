@@ -33,27 +33,27 @@ module FeatureHub
 
         cond = attr.conditional
         if cond.equals?
-          !vals.detect { |v| supplied_value == v }.nil?
+          vals.any? { |v| supplied_value == v }
         elsif cond.not_equals?
-          !vals.detect { |v| supplied_value != v }.nil?
+          vals.none? { |v| supplied_value == v }
         elsif cond.ends_with?
-          !vals.detect { |v| supplied_value.end_with?(v) }.nil?
+          vals.any? { |v| supplied_value.end_with?(v) }
         elsif cond.starts_with?
-          !vals.detect { |v| supplied_value.start_with?(v) }.nil?
+          vals.any? { |v| supplied_value.start_with?(v) }
         elsif cond.greater?
-          !vals.detect { |v| supplied_value > v }.nil?
+          vals.any? { |v| supplied_value > v }
         elsif cond.greater_equals?
-          !vals.detect { |v| supplied_value >= v }.nil?
+          vals.any? { |v| supplied_value >= v }
         elsif cond.less?
-          !vals.detect { |v| supplied_value < v }.nil?
+          vals.any? { |v| supplied_value < v }
         elsif cond.less_equals?
-          !vals.detect { |v| supplied_value <= v }.nil?
+          vals.any? { |v| supplied_value <= v }
         elsif cond.includes?
-          !vals.detect { |v| supplied_value.include?(v) }.nil?
+          vals.any? { |v| supplied_value.include?(v) }
         elsif cond.excludes?
-          vals.detect { |v| supplied_value.include?(v) }.nil?
+          vals.none? { |v| supplied_value.include?(v) }
         elsif cond.regex?
-          vals.detect { |v| supplied_value.match(Regexp.new(v)) }.nil?
+          vals.any? { |v| !Regexp.new(v).match(supplied_value).nil? }
         else
           false
         end
@@ -66,31 +66,35 @@ module FeatureHub
         cond = attr.conditional
 
         if cond.ends_with?
-          !attr.str_values.detect { |v| supplied_value.end_with?(v) }.nil?
+          attr.str_values.any? { |v| supplied_value.end_with?(v) }
         elsif cond.starts_with?
-          !attr.str_values.detect { |v| supplied_value.start_with?(v) }.nil?
+          attr.str_values.any? { |v| supplied_value.start_with?(v) }
+        elsif cond.excludes?
+          attr.str_values.none? { |v| supplied_value.include?(v) }
+        elsif cond.includes?
+          attr.str_values.any? { |v| supplied_value.include?(v) }
         elsif cond.regex?
-          attr.str_values.detect { |v| supplied_value.match(Regexp.new(v)) }.nil?
+          attr.str_values.any? { |v| !Regexp.new(v).match(supplied_value).nil? }
         else
           parsed_val = supplied_value.to_f
           vals = attr.float_values
 
           if cond.equals?
-            !vals.detect { |v| parsed_val == v }.nil?
+            vals.any? { |v| parsed_val == v }
           elsif cond.not_equals?
-            !vals.detect { |v| parsed_val != v }.nil?
+            vals.none? { |v| parsed_val == v }
           elsif cond.greater?
-            !vals.detect { |v| parsed_val > v }.nil?
+            vals.any? { |v| parsed_val > v }
           elsif cond.greater_equals?
-            !vals.detect { |v| parsed_val >= v }.nil?
+            vals.any? { |v| parsed_val >= v }
           elsif cond.less?
-            !vals.detect { |v| parsed_val < v }.nil?
+            vals.any? { |v| parsed_val < v }
           elsif cond.less_equals?
-            !vals.detect { |v| parsed_val <= v }.nil?
+            vals.any? { |v| parsed_val <= v }
           elsif cond.includes?
-            !vals.detect { |v| parsed_val.include?(v) }.nil?
+            vals.any? { |v| parsed_val.include?(v) }
           elsif cond.excludes?
-            vals.detect { |v| parsed_val.include?(v) }.nil?
+            vals.none? { |v| parsed_val.include?(v) }
           else
             false
           end
@@ -109,19 +113,19 @@ module FeatureHub
         vals = attr.str_values
 
         if cond.includes? || cond.equals?
-          !vals.detect { |v| val.satisfies?(v) }.nil?
+          vals.any? { |v| val.satisfies?(v) }
         elsif cond.excludes? || cond.not_equals?
-          vals.detect { |v| val.satisfies?(v) }.nil?
+          vals.none? { |v| val.satisfies?(v) }
         else
           comparison_vals = vals.filter { |x| SemVersion.valid?(x) }
           if cond.greater?
-            !comparison_vals.detect { |v| supplied_value > v }.nil?
+            comparison_vals.any? { |v| supplied_value > v }
           elsif cond.greater_equals?
-            !comparison_vals.detect { |v| supplied_value >= v }.nil?
+            comparison_vals.any? { |v| supplied_value >= v }
           elsif cond.less?
-            !comparison_vals.detect { |v| supplied_value < v }.nil?
+            comparison_vals.any? { |v| supplied_value < v }
           elsif cond.less_equals?
-            !comparison_vals.detect { |v| supplied_value <= v }.nil?
+            comparison_vals.any? { |v| supplied_value <= v }
           else
             false
           end
@@ -135,11 +139,12 @@ module FeatureHub
         cond = attr.conditional
 
         val = IPAddr.new(supplied_value)
+        vals = attr.str_values
 
         if cond.includes? || cond.equals?
-          !vals.detect { |v| IPAddr.new(v).include?(val) }.nil?
+          vals.any? { |v| IPAddr.new(v).include?(val) }
         elsif cond.excludes? || cond.not_equals?
-          vals.detect { |v| IPAddr.new(v).include?(val) }.nil?
+          vals.none? { |v| IPAddr.new(v).include?(val) }
         else
           false
         end
@@ -155,14 +160,16 @@ module FeatureHub
     class MatcherRegistry < MatcherRepository
       def find_matcher(attr)
         case attr.field_type
-        when "STRING", "DATE", "DATETIME"
+        when "BOOLEAN"
+          FeatureHub::Sdk::BooleanMatcher.new
+        when "STRING", "DATE", "DATE_TIME"
           FeatureHub::Sdk::StringMatcher.new
         when "SEMANTIC_VERSION"
           FeatureHub::Sdk::SemanticVersionMatcher.new
         when "NUMBER"
           FeatureHub::Sdk::NumberMatcher.new
         when "IP_ADDRESS"
-          FeatureHub::Sdk::INetworkMatcher.new
+          FeatureHub::Sdk::IpNetworkMatcher.new
         else
           FeatureHub::Sdk::StrategyMatcher.new
         end

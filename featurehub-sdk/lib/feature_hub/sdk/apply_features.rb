@@ -31,7 +31,7 @@ module FeatureHub
 
         strategies.each do |rsi|
           if (rsi.percentage != 0) && (!default_percentage_key.nil? || rsi.percentage_attributes?)
-            new_percentage_key = determine_percentage_key(context, rsi)
+            new_percentage_key = ApplyFeature.determine_percentage_key(context, rsi)
 
             base_percentage[new_percentage_key] = 0 if base_percentage[new_percentage_key].nil?
 
@@ -45,7 +45,7 @@ module FeatureHub
               # rubocop:disable Layout/MultilineOperationIndentation
               if percentage <= (use_base_percentage + rsi.percentage) &&
                 (!rsi.attributes? || (rsi.attributes? && match_attribute(context, rsi)))
-                return Applied(true, rsi.value)
+                return Applied.new(true, rsi.value)
               end
 
               # rubocop:enable Layout/MultilineOperationIndentation
@@ -57,10 +57,11 @@ module FeatureHub
             end
           end
 
-          return Applied(true, rsi.value) if rsi.percentage.zero? && rsi.attributes? && match_attribute(context, rsi)
+          return Applied.new(true, rsi.value) if rsi.percentage.zero? && rsi.attributes? && match_attribute(context,
+                                                                                                            rsi)
         end
 
-        Applied(false, nil)
+        Applied.new(false, nil)
       end
 
       def match_attribute(context, rs_attr)

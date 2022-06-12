@@ -61,7 +61,7 @@ module FeatureHub
       def initialize(attr)
         @attr = attr
         @id = @attr["id"]
-        @conditional = FeatureHub::Sdk::RolloutStrategyAttributeCondition(@attr["conditional"])
+        @conditional = FeatureHub::Sdk::RolloutStrategyAttributeCondition.new(@attr["conditional"])
         @field_name = @attr["fieldName"]
         @values = @attr["values"]
         @field_type = @attr["type"]
