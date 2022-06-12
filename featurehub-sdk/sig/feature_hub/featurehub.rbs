@@ -72,12 +72,15 @@ module FeatureHub
     class EnvironmentInterceptor <  ValueInterceptor
     end
 
-    class RolloutStrategy
-
+    class PercentageCalculator
+      def determine_client_percentage: (percentage_text: String, feature_id: String) -> int
     end
 
     class ApplyFeatures
-
+      def initialize: (percent_calculator: PercentageCalculator?, matcher_repository: MatcherRepository?) -> void
+      def apply: (strategies: Array[RolloutStrategy], key: String, feature_value_id: String, context: ClientContext) -> Applied
+      def match_attribute: (context: ClientContext, rs: RolloutStrategyAttribute) -> bool
+      def self.determine_percentage_key: (context: ClientContext, rsi: RolloutStrategy) -> String?
     end
 
     class InternalFeatureRepository
@@ -183,5 +186,71 @@ module FeatureHub
     class PollingEdgeService
 
     end
-  end
+
+    class RolloutStrategyCondition
+      def equals?: -> bool
+      def ends_with?: -> bool
+      def starts_with?: -> bool
+      def greater?: -> bool
+      def greater_equals?: -> bool
+      def less?: -> bool
+      def less_equals?: -> bool
+      def not_equals?: -> bool
+      def includes?: -> bool
+      def excludes?: -> bool
+      def regex?: -> bool
+    end
+
+    class RolloutStrategyAttribute
+      attr_reader id: String
+      attr_reader conditional: RolloutStrategyCondition
+      attr_reader field_name: String
+      attr_reader values: Array[[bool? | String? | Float?]]
+      attr_reader field_type: String
+
+      def float_values: -> Array[Float]
+      def str_values: -> Array[String]
+    end
+
+    class RolloutStrategy
+      attr_reader attributes: Array[RolloutStrategyAttribute]
+      attr_reader id: String
+      attr_reader name: String?
+      attr_reader percentage: int
+      attr_reader percentage_attributes: Array[String]
+      attr_reader value: [bool? | String? | Float?]
+
+      def percentage_attributes?: -> bool
+      def attributes?: -> bool
+    end
+
+    class StrategyMatcher
+      def match: (supplied_value: String, attr: RolloutStrategyAttribute ) -> bool
+    end
+
+    class BooleanMatcher < StrategyMatcher
+      def match: (supplied_value: String, attr: RolloutStrategyAttribute ) -> bool
+    end
+
+    class StringMatcher < StrategyMatcher
+    end
+
+    class NumberMatcher < StrategyMatcher
+    end
+
+    class SemanticVersionMatcher < StrategyMatcher
+    end
+
+    class IPNetworkMatcher < StrategyMatcher
+    end
+
+    class MatcherRepository
+      def find_matcher: (attr: RolloutStrategyAttribute) -> StrategyMatcher
+    end
+
+    class MatcherRegistry < MatcherRepository
+    end
+end
+
+end
 end

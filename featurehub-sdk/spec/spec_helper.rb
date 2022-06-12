@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "feature_hub/sdk"
+require "featurehub-sdk"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

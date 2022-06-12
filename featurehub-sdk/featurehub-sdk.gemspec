@@ -36,6 +36,8 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "concurrent-ruby", "~> 1.1.10"
   spec.add_dependency "faraday", '~> 2.3'
+  spec.add_dependency "murmurhash3", "~> 0.1.6"
+  spec.add_dependency "sem_version", "~> 2.0.0"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

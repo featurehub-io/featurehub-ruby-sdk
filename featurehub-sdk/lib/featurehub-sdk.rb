@@ -12,12 +12,11 @@ require_relative "feature_hub/sdk/strategies"
 require_relative "feature_hub/sdk/strategy_attributes"
 require_relative "feature_hub/sdk/strategy_wrappers"
 require_relative "feature_hub/sdk/poll_edge_service"
-
-puts("loaded sdk")
+require_relative "feature_hub/sdk/rollout_holders"
+require_relative "feature_hub/sdk/percentage_calc"
 
 module FeatureHub
   module Sdk
     class Error < StandardError; end
-    # Your code goes here...
   end
 end
