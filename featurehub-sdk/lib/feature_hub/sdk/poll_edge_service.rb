@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
-require 'faraday'
-require 'faraday/net_http'
-require 'json'
-require 'concurrent-ruby'
+require "faraday"
+require "faraday/net_http"
+require "json"
+require "concurrent-ruby"
 
 module FeatureHub
   module Sdk
-
     # uses a periodic polling mechanism to get updates
     class PollingEdgeService < EdgeService
       attr_reader :repository, :api_keys, :edge_url, :interval
@@ -44,11 +43,11 @@ module FeatureHub
       end
 
       def context_change(new_header)
-        if new_header != @context
-          @context = new_header
+        return if new_header == @context
 
-          get_updates
-        end
+        @context = new_header
+
+        get_updates
       end
 
       def close
@@ -78,6 +77,7 @@ module FeatureHub
         @cancel = true
       end
 
+      # rubocop:disable Naming/AccessorMethodName
       def get_updates
         url = determine_request_url
         headers = {
@@ -85,10 +85,8 @@ module FeatureHub
           "X-SDK": "Ruby",
           "X-SDK-Version": FeatureHub::Sdk::VERSION
         }
-        unless @etag.nil?
-          headers["if-none-match"] = @etag
-        end
-        resp = @conn.get(url, request: {timeout: @timeout}, headers: headers)
+        headers["if-none-match"] = @etag unless @etag.nil?
+        resp = @conn.get(url, request: { timeout: @timeout }, headers: headers)
         case resp.status
         when 200
           @etag = resp.headers["etag"]
@@ -104,14 +102,13 @@ module FeatureHub
           puts("unknown failure #{resp.status}")
         end
       end
+      # rubocop:enable Naming/AccessorMethodName
 
       def process_results(data)
         puts("found data ", data)
 
         data.each do |environment|
-          if environment
-            @repository.notify("features", environment["features"])
-          end
+          @repository.notify("features", environment["features"]) if environment
         end
       end
 
@@ -124,7 +121,8 @@ module FeatureHub
       end
 
       def generate_url
-        @url = "/features?" + (@api_keys.map { |key| "apiKey=#{key}" } * "&")
+        api_key_cat = (@api_keys.map { |key| "apiKey=#{key}" } * "&")
+        @url = "/features?#{api_key_cat}"
         @timeout = ENV.fetch("FEATUREHUB_POLL_HTTP_TIMEOUT", "12").to_i
         @conn = Faraday.new(url: @edge_url) do |f|
           f.adapter :net_http

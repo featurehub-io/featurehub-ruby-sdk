@@ -68,11 +68,11 @@ module FeatureHub
       end
 
       def float_values
-        @values.filter{|x| !x.nil?}.map(&:to_f)
+        @values.filter { |x| !x.nil? }.map(&:to_f)
       end
 
       def str_values
-        @values.filter{|x| !x.nil?}.map(&:to_s)
+        @values.filter { |x| !x.nil? }.map(&:to_s)
       end
     end
 
@@ -82,7 +82,7 @@ module FeatureHub
 
       def initialize(strategy)
         @strategy = strategy
-        @attributes = (strategy["attributes"] || []).map{ |attr| FeatureHub::Sdk::RolloutStrategyAttribute.new(attr) }
+        @attributes = (strategy["attributes"] || []).map { |attr| FeatureHub::Sdk::RolloutStrategyAttribute.new(attr) }
         @id = strategy["id"]
         @name = strategy["name"]
         @percentage = (strategy["percentage"] || "0").to_i

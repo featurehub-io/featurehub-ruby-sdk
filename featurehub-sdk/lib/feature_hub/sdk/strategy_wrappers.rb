@@ -6,14 +6,15 @@ module FeatureHub
   module Sdk
     # generic strategy matcher (and fallthrough)
     class StrategyMatcher
-      def match(supplied_value, attr) # rubocop:disable Lint/UnusedMethodArgument
+      def match(_supplied_value, _attr)
         false
       end
     end
 
+    # comparison for true/false
     class BooleanMatcher < StrategyMatcher
       def match(supplied_value, attr)
-        val = "true" == supplied_value.downcase
+        val = supplied_value.downcase == "true"
 
         if attr.conditional.equals?
           val == (attr.values[0].to_s.downcase == "true")
@@ -25,6 +26,7 @@ module FeatureHub
       end
     end
 
+    # matches for strings, dates and date-times
     class StringMatcher < StrategyMatcher
       def match(supplied_value, attr)
         vals = attr.str_values
@@ -58,6 +60,7 @@ module FeatureHub
       end
     end
 
+    # matches floating point numbers excep for end/start/regexp
     class NumberMatcher < StrategyMatcher
       def match(supplied_value, attr)
         cond = attr.conditional
@@ -74,7 +77,7 @@ module FeatureHub
 
           if cond.equals?
             !vals.detect { |v| parsed_val == v }.nil?
-          elsif cond.equals?
+          elsif cond.not_equals?
             !vals.detect { |v| parsed_val != v }.nil?
           elsif cond.greater?
             !vals.detect { |v| parsed_val > v }.nil?
@@ -94,8 +97,10 @@ module FeatureHub
         end
       end
     end
+
     # NumberMatcher
 
+    # matches using semantic versions
     class SemanticVersionMatcher < StrategyMatcher
       def match(supplied_value, attr)
         cond = attr.conditional
@@ -110,19 +115,19 @@ module FeatureHub
         else
           comparison_vals = vals.filter { |x| SemVersion.valid?(x) }
           if cond.greater?
-            !comparison_vals.detect { |v| supplied_value > v  }.nil?
+            !comparison_vals.detect { |v| supplied_value > v }.nil?
           elsif cond.greater_equals?
-            !comparison_vals.detect { |v| supplied_value >= v  }.nil?
+            !comparison_vals.detect { |v| supplied_value >= v }.nil?
           elsif cond.less?
-            !comparison_vals.detect { |v| supplied_value < v  }.nil?
+            !comparison_vals.detect { |v| supplied_value < v }.nil?
           elsif cond.less_equals?
-            !comparison_vals.detect { |v| supplied_value <= v  }.nil?
+            !comparison_vals.detect { |v| supplied_value <= v }.nil?
           else
             false
           end
         end
       end
-    end  # SemanticVersionMatcher
+    end
 
     # matches based on ip addresses and CIDRs
     class IpNetworkMatcher < StrategyMatcher

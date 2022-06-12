@@ -23,6 +23,15 @@ Layout/LineLength:
 Metrics/AbcSize:
   Enabled: false
 
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Naming/FileName:
+  Enabled: false
+
 Gemspec/DateAssignment: # new in 1.10
   Enabled: true
 Gemspec/DeprecatedAttributeAssignment: # new in 1.30

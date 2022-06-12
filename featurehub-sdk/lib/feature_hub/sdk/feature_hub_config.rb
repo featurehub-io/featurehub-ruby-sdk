@@ -21,7 +21,6 @@ module FeatureHub
     class FeatureHubConfig
       attr_reader :edge_url, :api_keys, :client_evaluated
 
-      # rubocop:disable Metrics/CyclomaticComplexity
       def initialize(edge_url, api_keys, repository = nil, edge_provider = nil)
         raise "edge_url is not set to a valid string" if edge_url.nil? || edge_url.strip.empty?
 
@@ -34,7 +33,6 @@ module FeatureHub
         @repository = repository || FeatureHub::Sdk::FeatureHubRepository.new
         @edge_service_provider = edge_provider || method(:create_default_provider)
       end
-      # rubocop:enable Metrics/CyclomaticComplexity
 
       def repository(repo = nil)
         @repository = repo || @repository

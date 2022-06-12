@@ -106,8 +106,6 @@ module FeatureHub
         @encoded_strategies = found_strategies.map { |s| RolloutStrategy(s) }
       end
 
-      # rubocop:disable Metrics/PerceivedComplexity
-      # rubocop:disable Metrics/CyclomaticComplexity
       def get_value(feature_type)
         unless locked?
           intercept = @repo.find_interceptor(@key)
@@ -131,8 +129,6 @@ module FeatureHub
 
         state["value"]
       end
-      # rubocop:enable Metrics/PerceivedComplexity
-      # rubocop:enable Metrics/CyclomaticComplexity
     end
   end
 end
