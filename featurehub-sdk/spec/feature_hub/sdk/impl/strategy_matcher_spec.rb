@@ -2,8 +2,8 @@
 
 require "json"
 
-RSpec.describe FeatureHub::Sdk::StrategyMatcher do
-  let(:matcher) { FeatureHub::Sdk::MatcherRegistry.new }
+RSpec.describe FeatureHub::Sdk::Impl::StrategyMatcher do
+  let(:matcher) { FeatureHub::Sdk::Impl::MatcherRegistry.new }
 
   def equals(condition, vals, supplied_val, matches)
     json_data = JSON.parse('{"conditional": "EQUALS", "type": "type", "values": true}')
@@ -11,7 +11,7 @@ RSpec.describe FeatureHub::Sdk::StrategyMatcher do
     json_data["type"] = @field_type
     json_data["values"] = vals
 
-    rsa = FeatureHub::Sdk::RolloutStrategyAttribute.new(json_data)
+    rsa = FeatureHub::Sdk::Impl::RolloutStrategyAttribute.new(json_data)
 
     expect(matcher.find_matcher(rsa).match(supplied_val, rsa)).to eq(matches)
   end

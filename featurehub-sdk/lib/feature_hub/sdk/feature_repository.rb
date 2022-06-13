@@ -6,7 +6,7 @@ module FeatureHub
     class FeatureHubRepository < InternalFeatureRepository
       def initialize(apply_features = nil)
         super()
-        @strategy_matcher = apply_features || ApplyFeatures.new
+        @strategy_matcher = apply_features || FeatureHub::Sdk::Impl::ApplyFeature.new
         @interceptors = []
         @features = {}
         @ready = false

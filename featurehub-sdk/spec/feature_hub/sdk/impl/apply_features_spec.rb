@@ -2,19 +2,19 @@
 
 require "json"
 
-RSpec.describe FeatureHub::Sdk::ApplyFeature do
+RSpec.describe FeatureHub::Sdk::Impl::ApplyFeature do
   let(:percent) { instance_double(FeatureHub::Sdk::PercentageCalculator) }
-  let(:matcher) { instance_double(FeatureHub::Sdk::MatcherRepository) }
-  let(:s_matcher) { instance_double(FeatureHub::Sdk::StrategyMatcher) }
+  let(:matcher) { instance_double(FeatureHub::Sdk::Impl::MatcherRepository) }
+  let(:s_matcher) { instance_double(FeatureHub::Sdk::Impl::StrategyMatcher) }
   let(:context) { instance_double(FeatureHub::Sdk::ClientContext) }
-  let(:apply) { FeatureHub::Sdk::ApplyFeature.new(percent, matcher) }
+  let(:apply) { FeatureHub::Sdk::Impl::ApplyFeature.new(percent, matcher) }
 
   before do
     allow(matcher).to receive(:find_matcher).and_return(s_matcher)
   end
 
   it "should always return false when an undefined context" do
-    found = apply.apply([FeatureHub::Sdk::RolloutStrategy.new({})], "key", "fld", nil)
+    found = apply.apply([FeatureHub::Sdk::Impl::RolloutStrategy.new({})], "key", "fld", nil)
     expect(found.matched).to eq(false)
     expect(found.value).to eq(nil)
   end
@@ -44,7 +44,7 @@ RSpec.describe FeatureHub::Sdk::ApplyFeature do
         }
       ]
     }.to_json)
-    found = apply.apply([FeatureHub::Sdk::RolloutStrategy.new(json_data)], "FEATURE_NAME", "fld", context)
+    found = apply.apply([FeatureHub::Sdk::Impl::RolloutStrategy.new(json_data)], "FEATURE_NAME", "fld", context)
 
     expect(found.matched).to eq(false)
     expect(found.value).to eq(nil)
@@ -65,7 +65,7 @@ RSpec.describe FeatureHub::Sdk::ApplyFeature do
           }
         ]
       }.to_json)
-      @rsi = FeatureHub::Sdk::RolloutStrategy.new(json_data)
+      @rsi = FeatureHub::Sdk::Impl::RolloutStrategy.new(json_data)
     end
 
     it "should not match percentage and should match" do
@@ -87,18 +87,18 @@ RSpec.describe FeatureHub::Sdk::ApplyFeature do
 
   it "should not extract values ouf of context if there are no percentage attributes" do
     expect(context).to receive(:default_percentage_key).and_return("user@email")
-    strategy = instance_double(FeatureHub::Sdk::RolloutStrategy)
+    strategy = instance_double(FeatureHub::Sdk::Impl::RolloutStrategy)
     expect(strategy).to receive(:percentage_attributes?).and_return(false)
-    expect(FeatureHub::Sdk::ApplyFeature.determine_percentage_key(context, strategy)).to eq("user@email")
+    expect(FeatureHub::Sdk::Impl::ApplyFeature.determine_percentage_key(context, strategy)).to eq("user@email")
   end
 
   it "should extract values ouf of context when calculating percentage" do
     expect(context).to receive(:get_attr).with("a", "<none>").and_return("one-thing")
     expect(context).to receive(:get_attr).with("b", "<none>").and_return("two-thing")
-    strategy = instance_double(FeatureHub::Sdk::RolloutStrategy)
+    strategy = instance_double(FeatureHub::Sdk::Impl::RolloutStrategy)
     expect(strategy).to receive(:percentage_attributes?).and_return(true)
     expect(strategy).to receive(:percentage_attributes).and_return(%w[a b])
-    expect(FeatureHub::Sdk::ApplyFeature.determine_percentage_key(context, strategy)).to eq("one-thing$two-thing")
+    expect(FeatureHub::Sdk::Impl::ApplyFeature.determine_percentage_key(context, strategy)).to eq("one-thing$two-thing")
   end
 
   it "should ignore a bad percentage request" do
@@ -109,7 +109,7 @@ RSpec.describe FeatureHub::Sdk::ApplyFeature do
       percentage: 20
     }.to_json)
 
-    rsi = FeatureHub::Sdk::RolloutStrategy.new(json_data)
+    rsi = FeatureHub::Sdk::Impl::RolloutStrategy.new(json_data)
     found = apply.apply([rsi], "FEATURE_NAME", "fid", context)
     expect(found.matched).to eq(false)
     expect(found.value).to eq(nil)
@@ -130,7 +130,7 @@ RSpec.describe FeatureHub::Sdk::ApplyFeature do
         ]
       }.to_json)
 
-      FeatureHub::Sdk::RolloutStrategy.new(json_data)
+      FeatureHub::Sdk::Impl::RolloutStrategy.new(json_data)
     end
 
     before do
@@ -141,7 +141,7 @@ RSpec.describe FeatureHub::Sdk::ApplyFeature do
     # this one is more of an integration test as the strategy matchers are not mocked out
     it "should match percentage and match attributes" do
       expect(context).to receive(:get_attr).with("warehouseId").and_return("ponsonby").at_least(:once)
-      apply = FeatureHub::Sdk::ApplyFeature.new(percent, FeatureHub::Sdk::MatcherRegistry.new)
+      apply = FeatureHub::Sdk::Impl::ApplyFeature.new(percent, FeatureHub::Sdk::Impl::MatcherRegistry.new)
       found = apply.apply([rsi], "FEATURE_NAME", "fid", context)
       expect(found.matched).to eq(true)
       expect(found.value).to eq("sausage")
@@ -149,7 +149,7 @@ RSpec.describe FeatureHub::Sdk::ApplyFeature do
 
     it "should not match the attribute and hence fail the overall percent match" do
       expect(context).to receive(:get_attr).with("warehouseId").and_return(nil).at_least(:once)
-      apply = FeatureHub::Sdk::ApplyFeature.new(percent, FeatureHub::Sdk::MatcherRegistry.new)
+      apply = FeatureHub::Sdk::Impl::ApplyFeature.new(percent, FeatureHub::Sdk::Impl::MatcherRegistry.new)
       found = apply.apply([rsi], "FEATURE_NAME", "fid", context)
       expect(found.matched).to eq(false)
       expect(found.value).to eq(nil)

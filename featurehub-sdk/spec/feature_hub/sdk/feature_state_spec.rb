@@ -86,7 +86,7 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
       let(:ctx) { instance_double(FeatureHub::Sdk::ClientContext) }
 
       it "asks for client evaluation when a context is provided but no match exists should return default value" do
-        expect(repo).to receive(:apply).and_return(FeatureHub::Sdk::Applied.new(false, nil))
+        expect(repo).to receive(:apply).and_return(FeatureHub::Sdk::Impl::Applied.new(false, nil))
         expect(f.with_context(ctx).string).to eq("ruby")
         expect(f.with_context(ctx).exists?).to be(true)
         expect(f.with_context(ctx).version).to be(1)
@@ -94,7 +94,7 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
       end
 
       it "asks for client evaluation but a match is provided and it should return match" do
-        expect(repo).to receive(:apply).and_return(FeatureHub::Sdk::Applied.new(true, "python"))
+        expect(repo).to receive(:apply).and_return(FeatureHub::Sdk::Impl::Applied.new(true, "python"))
         expect(f.with_context(ctx).string).to eq("python")
       end
     end

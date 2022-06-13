@@ -74,7 +74,7 @@ RSpec.describe FeatureHub::Sdk::FeatureHubRepository do
   end
 
   describe "feature repository" do
-    let(:apply_features) { instance_double(FeatureHub::Sdk::ApplyFeatures) }
+    let(:apply_features) { instance_double(FeatureHub::Sdk::Impl::ApplyFeature) }
     let(:repo) { FeatureHub::Sdk::FeatureHubRepository.new(apply_features) }
 
     it "should receive a json array of features and process it" do
