@@ -5,7 +5,7 @@ module FeatureHub
     # interface style definition for all edge services
     class EdgeService
       # abstract
-      def initialize(repository, api_keys, edge_url) end
+      def initialize(repository, api_keys, edge_url, logger = nil) end
 
       # abstract
       def poll; end
@@ -19,10 +19,9 @@ module FeatureHub
 
     # central dispatch class for FeatureHub SDK
     class FeatureHubConfig
-      attr_reader :edge_url, :api_keys, :client_evaluated
+      attr_reader :edge_url, :api_keys, :client_evaluated, :logger
 
-      # rubocop:disable Metrics/CyclomaticComplexity
-      def initialize(edge_url, api_keys, repository = nil, edge_provider = nil)
+      def initialize(edge_url, api_keys, repository = nil, edge_provider = nil, logger = nil)
         raise "edge_url is not set to a valid string" if edge_url.nil? || edge_url.strip.empty?
 
         raise "api_keys must be an array of API keys" if api_keys.nil? || !api_keys.is_a?(Array) || api_keys.empty?
@@ -33,15 +32,14 @@ module FeatureHub
         @api_keys = api_keys
         @repository = repository || FeatureHub::Sdk::FeatureHubRepository.new
         @edge_service_provider = edge_provider || method(:create_default_provider)
+        @logger = logger || FeatureHub::Sdk.default_logger
       end
-      # rubocop:enable Metrics/CyclomaticComplexity
 
       def repository(repo = nil)
         @repository = repo || @repository
       end
 
       def init
-        puts("init request made")
         get_or_create_edge_service.poll
       end
 
@@ -66,7 +64,7 @@ module FeatureHub
         edge_provider
       end
 
-      def use_polling_edge_service(interval = ENV.fetch("FEATUREHUB_POLL_INTERVAL", "10").to_i); end
+      def use_polling_edge_service(interval = ENV.fetch("FEATUREHUB_POLL_INTERVAL", "30").to_i); end
 
       def new_context
         get_or_create_edge_service
@@ -88,11 +86,12 @@ module FeatureHub
       private
 
       def create_edge_service
-        @edge_service_provider.call(@repository, @api_keys, @edge_url)
+        @edge_service_provider.call(@repository, @api_keys, @edge_url, @logger)
       end
 
-      def create_default_provider(repo, api_keys, edge_url)
-        FeatureHub::Sdk::PollingEdgeService.new(repo, api_keys, edge_url, 10)
+      def create_default_provider(repo, api_keys, edge_url, logger)
+        # FeatureHub::Sdk::PollingEdgeService.new(repo, api_keys, edge_url, 10, logger)
+        FeatureHub::Sdk::StreamingEdgeService.new(repo, api_keys, edge_url, logger)
       end
 
       # rubocop:disable Style/GuardClause
