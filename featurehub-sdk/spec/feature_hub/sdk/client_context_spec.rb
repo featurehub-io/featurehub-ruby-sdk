@@ -13,7 +13,7 @@ RSpec.describe FeatureHub::Sdk::ClientContext do
   end
 
   it "should store and retrieve context" do
-    expect(@ctx.user_key("fred").get_attr(ContextKeys::USER_KEY)).to eq("fred")
+    expect(@ctx.user_key("fred").get_attr(ContextKeys::USERKEY)).to eq("fred")
     country = FeatureHub::Sdk::StrategyAttributeCountryName::Afghanistan
     expect(@ctx.country(country).get_attr(ContextKeys::COUNTRY)).to eq(country)
     device = FeatureHub::Sdk::StrategyAttributeDeviceName::Browser

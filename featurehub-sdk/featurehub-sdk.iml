@@ -3,18 +3,28 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="rbenv: 2.7.6" jdkType="RUBY_SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="PROVIDED" name="addressable (v2.8.0, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ast (v2.4.2, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="bundler (v2.1.4, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="concurrent-ruby (v1.1.10, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="diff-lcs (v1.5.0, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="docile (v1.4.0, rbenv: 2.7.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="domain_name (v0.5.20190701, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="faraday (v2.3.0, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="faraday-net_http (v2.0.3, rbenv: 2.7.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ffi (v1.15.5, rbenv: 2.7.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ffi-compiler (v1.0.1, rbenv: 2.7.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="http (v5.0.4, rbenv: 2.7.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="http-cookie (v1.0.5, rbenv: 2.7.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="http-form_data (v2.3.0, rbenv: 2.7.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ld-eventsource (v2.2.0, rbenv: 2.7.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="llhttp-ffi (v0.4.0, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="murmurhash3 (v0.1.6, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="parallel (v1.22.1, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="parser (v3.1.2.0, rbenv: 2.7.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="public_suffix (v4.0.7, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rainbow (v3.1.1, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rake (v13.0.6, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="regexp_parser (v2.5.0, rbenv: 2.7.6) [gem]" level="application" />
@@ -32,6 +42,8 @@
     <orderEntry type="library" scope="PROVIDED" name="simplecov (v0.21.2, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="simplecov-html (v0.12.3, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="simplecov_json_formatter (v0.1.4, rbenv: 2.7.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="unf (v0.1.4, rbenv: 2.7.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="unf_ext (v0.0.8.2, rbenv: 2.7.6) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="unicode-display_width (v2.1.0, rbenv: 2.7.6) [gem]" level="application" />
   </component>
   <component name="RakeTasksCache">

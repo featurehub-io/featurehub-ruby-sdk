@@ -4,7 +4,7 @@ module FeatureHub
   module Sdk
     # represents internal state of a feature
     class FeatureState
-      attr_reader :key, :internal_feature_state
+      attr_reader :key, :internal_feature_state, :encoded_strategies
 
       def initialize(key, repo, feature_state = nil, parent_state = nil, ctx = nil)
         @key = key.to_sym
@@ -102,8 +102,8 @@ module FeatureHub
 
       def _set_feature_state(feature_state)
         @internal_feature_state = feature_state || {}
-        found_strategies = feature_state[:strategies] || []
-        @encoded_strategies = found_strategies.map { |s| RolloutStrategy(s) }
+        found_strategies = feature_state["strategies"] || []
+        @encoded_strategies = found_strategies.map { |s| FeatureHub::Sdk::Impl::RolloutStrategy.new(s) }
       end
 
       def get_value(feature_type)
@@ -122,7 +122,7 @@ module FeatureHub
         return nil if fs.nil? || (!feature_type.nil? && fs.feature_type != feature_type)
 
         if @ctx
-          matched = @repo.apply(@encoded_strategies, @key, fs.id, @ctx)
+          matched = @repo.apply(fs.encoded_strategies, @key, fs.id, @ctx)
 
           return FeatureHub::Sdk::InterceptorValue.new(matched.value).cast(feature_type) if matched.matched
         end

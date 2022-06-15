@@ -5,7 +5,6 @@ require "murmurhash3"
 module FeatureHub
   module Sdk
     module Impl
-
       # consistent across all platforms murmur percentage calculator
       class Murmur3PercentageCalculator < FeatureHub::Sdk::PercentageCalculator
         MAX_PERCENTAGE = 1_000_000

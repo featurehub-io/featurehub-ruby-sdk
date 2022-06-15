@@ -4,6 +4,8 @@ module FeatureHub
   module Sdk
     # the core implementation of a feature repository
     class FeatureHubRepository < InternalFeatureRepository
+      attr_reader :features
+
       def initialize(apply_features = nil)
         super()
         @strategy_matcher = apply_features || FeatureHub::Sdk::Impl::ApplyFeature.new
@@ -24,14 +26,14 @@ module FeatureHub
 
         return if data.nil?
 
-        case status
-        when "features"
+        case status.to_sym
+        when :features
           update_features(data)
           @ready = true
-        when "feature"
+        when :feature
           update_feature(data)
           @ready = true
-        when "delete_feature"
+        when :delete_feature
           delete_feature(data)
         end
       end

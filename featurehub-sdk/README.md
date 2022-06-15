@@ -1,43 +1,107 @@
-# Featurehub::Sdk
+# Official FeatureHub Ruby SDK.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/featurehub/sdk`. To experiment with that code, run `bin/console` for an interactive prompt.
+## Overview
+To control the feature flags from the FeatureHub Admin console, either use our [demo](https://demo.featurehub.io) version for evaluation or install the app using our guide [here](https://docs.featurehub.io/featurehub/latest/installation.html)
 
-TODO: Delete this and the text above, and describe your gem
+## SDK installation
 
-## Installation
+Add the featurehub sdk gem to your Gemfile and/or gemspec if you are creating a library:
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'featurehub-sdk'
+```
+gem `featurehub-sdk`
 ```
 
-And then execute:
 
-    $ bundle install
+## Options to get feature updates
 
-Or install it yourself as:
+There are 2 ways to request for feature updates via this SDK:
 
-    $ gem install featurehub-sdk
+- **SSE (Server Sent Events) realtime updates mechanism**
 
-## Usage
+  In this mode, you will make a connection to the FeatureHub Edge server using using Server Sent Events, any updates to any features will come through in _near realtime_, automatically updating the feature values in the repository. This method is recommended for server applications.
 
-TODO: Write usage instructions here
+- **FeatureHub polling client (GET request updates)**
 
-## Development
+  In this mode you can set an interval (from 0 - just once) to any number of seconds between polling. This is more useful for when you have short term single threaded
+  processes like command line tools. Batch tools that iterate over data sets and wish to control when updates happen can also benefit from this method.
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+This SDK uses concurrent ruby to ensure whichever option you choose stays open and continually updates your data.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+## Example
 
-## Contributing
+Check our example Sinatra app [here](https://github.com/featurehub-io/featurehub-ruby-sdk/tree/main/example/sinatra)
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/featurehub-sdk. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/featurehub-sdk/blob/main/CODE_OF_CONDUCT.md).
+## Quick start
 
-## License
+### Connecting to FeatureHub
+There are 3 steps to connecting:
+1) Copy FeatureHub API Key from the FeatureHub Admin Console
+2) Create FeatureHub config
+3) Check FeatureHub Repository readiness and request feature state
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+#### 1. API Key from the FeatureHub Admin Console
+Find and copy your API Key from the FeatureHub Admin Console on the API Keys page -
+you will use this in your code to configure feature updates for your environments.
+It should look similar to this: ```default/71ed3c04-122b-4312-9ea8-06b2b8d6ceac/fsTmCrcZZoGyl56kPHxfKAkbHrJ7xZMKO3dlBiab5IqUXjgKvqpjxYdI8zdXiJqYCpv92Jrki0jY5taE```.
+There are two options - a Server Evaluated API Key and a Client Evaluated API Key. More on this [here](https://docs.featurehub.io/#_client_and_server_api_keys)
 
-## Code of Conduct
+Client Side evaluation is intended for use in secure environments (such as microservices) and is intended for rapid client side evaluation, per request for example.
 
-Everyone interacting in the Featurehub::Sdk project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/featurehub-sdk/blob/main/CODE_OF_CONDUCT.md).
+Server Side evaluation is more suitable when you are using an _insecure client_. (e.g. command line tool). This also means you evaluate one user per client.
+
+#### 2. Create FeatureHub config:
+
+Create `FeatureHubConfig`. You need to provide the API Key and the URL of the FeatureHub Edge server.
+
+```ruby
+config = FeatureHub::Sdk::FeatureHubConfig.new(ENV.fetch("FEATUREHUB_EDGE_URL"),
+                                                 [ENV.fetch("FEATUREHUB_CLIENT_API_KEY")])
+config.init
+
+```
+
+By default, this SDK will use SSE client. If you decide to use FeatureHub polling client, after initialising the config, you can add this:
+
+```ruby
+config.use_polling_edge_service(30)
+# OR
+config.use_polling_edge_service # uses environment variable FEATUREHUB_POLL_INTERVAL or default of 30 
+```
+
+in this case it is configured for requesting an update every 30 seconds.
+
+#### 3. Check FeatureHub Repository readiness and request feature state
+
+Check for FeatureHub Repository readiness:
+```ruby
+if config.repository.ready?
+  # do something
+end
+```
+
+If you are not intending to use rollout strategies, you can pass empty context to the SDK:
+
+```ruby
+def name_arg(name)
+    if config.new_context.build.feature("FEATURE_TITLE_TO_UPPERCASE").flag
+        "HELLO WORLD"
+    else
+        "hello world"
+    end
+end
+```
+
+
+If you are using rollout strategies and targeting rules they are all determined by the active _user context_. In this example we pass `user_key` to the context :
+
+```ruby
+def name_arg(name)
+    if config.new_context.user_key(name).build.feature("FEATURE_TITLE_TO_UPPERCASE").flag
+        "HELLO WORLD"
+    else
+        "hello world"
+    end
+end
+```
+
+See more options to request feature states [here](https://github.com/featurehub-io/featurehub-ruby-sdk/blob/main/featurehub-sdk/lib/feature_hub/sdk/context.rb)

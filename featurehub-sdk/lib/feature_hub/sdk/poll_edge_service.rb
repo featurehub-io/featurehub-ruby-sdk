@@ -11,13 +11,15 @@ module FeatureHub
     class PollingEdgeService < EdgeService
       attr_reader :repository, :api_keys, :edge_url, :interval
 
-      def initialize(repository, api_keys, edge_url, interval)
+      def initialize(repository, api_keys, edge_url, interval, logger = nil)
         super(repository, api_keys, edge_url)
 
         @repository = repository
         @api_keys = api_keys
         @edge_url = edge_url
         @interval = interval
+
+        @logger = logger || FeatureHub::Sdk.default_logger
 
         @task = nil
         @cancel = false
@@ -61,9 +63,8 @@ module FeatureHub
 
         get_updates
 
-        puts("creating task for #{@interval}")
+        @logger.info("starting polling for #{determine_request_url}")
         @task = Concurrent::TimerTask.new(execution_interval: @interval) do
-          puts("interval firing")
           get_updates
         end
         @task.execute
@@ -86,27 +87,25 @@ module FeatureHub
           "X-SDK-Version": FeatureHub::Sdk::VERSION
         }
         headers["if-none-match"] = @etag unless @etag.nil?
+        @logger.debug("polling for #{url}")
         resp = @conn.get(url, request: { timeout: @timeout }, headers: headers)
         case resp.status
         when 200
           @etag = resp.headers["etag"]
-          puts("etag is #{@etag}")
           process_results(JSON.parse(resp.body))
         when 404 # no such key
           @repository.notify("failed", nil)
           @cancel = true
-          puts("key does not exist")
+          @logger.error("featurehub: key does not exist, stopping polling")
         when 503 # dacha busy
-          puts("dacha busy, retrying on next")
+          @logger.debug("featurehub: dacha is busy, trying tgaina")
         else
-          puts("unknown failure #{resp.status}")
+          @logger.debug("featurehub: unknown error #{resp.status}")
         end
       end
       # rubocop:enable Naming/AccessorMethodName
 
       def process_results(data)
-        puts("found data ", data)
-
         data.each do |environment|
           @repository.notify("features", environment["features"]) if environment
         end
@@ -122,7 +121,7 @@ module FeatureHub
 
       def generate_url
         api_key_cat = (@api_keys.map { |key| "apiKey=#{key}" } * "&")
-        @url = "/features?#{api_key_cat}"
+        @url = "features?#{api_key_cat}"
         @timeout = ENV.fetch("FEATUREHUB_POLL_HTTP_TIMEOUT", "12").to_i
         @conn = Faraday.new(url: @edge_url) do |f|
           f.adapter :net_http

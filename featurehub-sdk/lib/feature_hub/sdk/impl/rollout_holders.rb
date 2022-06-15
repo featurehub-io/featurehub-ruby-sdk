@@ -53,6 +53,10 @@ module FeatureHub
         def regex?
           @attr == "REGEX"
         end
+
+        def to_s
+          @attr
+        end
       end
 
       # represents an individual attribute comparison
@@ -74,6 +78,11 @@ module FeatureHub
 
         def str_values
           @values.filter { |x| !x.nil? }.map(&:to_s)
+        end
+
+        def to_s
+          "id: #{@id}, conditional: #{@conditional}, field_name: #{@field_name}, " \
+            "values: #{@values}, field_type: #{field_type}"
         end
       end
 
@@ -97,6 +106,11 @@ module FeatureHub
 
         def attributes?
           !@attributes.empty?
+        end
+
+        def to_s
+          "id: #{@id}, name: #{@name}, percentage: #{@percentage}, percentage_attrs: #{@percentage_attributes}, " \
+            "value: #{@value}, attributes: [#{@attributes.map(&:to_s).join(",")}]"
         end
       end
     end

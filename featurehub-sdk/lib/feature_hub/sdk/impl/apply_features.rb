@@ -77,10 +77,10 @@ module FeatureHub
               end
             end
 
-            if attr.values.nil? || supplied_value.nil?
+            if attr.values.nil? && supplied_value.nil?
               return false unless attr.conditional.equals?
 
-              continue
+              next
             end
 
             return false if attr.values.nil? || supplied_value.nil?

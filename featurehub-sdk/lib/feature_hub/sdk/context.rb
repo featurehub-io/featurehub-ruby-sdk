@@ -5,7 +5,7 @@ require "json"
 module FeatureHub
   module Sdk
     module ContextKeys
-      USER_KEY = :user_key
+      USERKEY = :userkey
       SESSION = :session
       COUNTRY = :country
       PLATFORM = :platform
@@ -23,7 +23,7 @@ module FeatureHub
       end
 
       def user_key(value)
-        @attributes[ContextKeys::USER_KEY] = [value]
+        @attributes[ContextKeys::USERKEY] = [value]
         self
       end
 
@@ -55,13 +55,13 @@ module FeatureHub
       # this takes an array parameter
       def attribute_value(key, values)
         if values.empty?
-          @attributes.delete(key)
+          @attributes.delete(key.to_sym)
         else
-          @attributes[key] = if values.is_a?(Array)
-                               values
-                             else
-                               [values]
-                             end
+          @attributes[key.to_sym] = if values.is_a?(Array)
+                                      values
+                                    else
+                                      [values]
+                                    end
         end
 
         self
@@ -73,11 +73,11 @@ module FeatureHub
       end
 
       def get_attr(key, default_val = nil)
-        (@attributes[key] || [default_val])[0]
+        (@attributes[key.to_sym] || [default_val])[0]
       end
 
       def default_percentage_key
-        key = @attributes[ContextKeys::SESSION] || @attributes[ContextKeys::USER_KEY]
+        key = @attributes[ContextKeys::SESSION] || @attributes[ContextKeys::USERKEY]
         if key.nil? || key.empty?
           nil
         else
@@ -86,7 +86,7 @@ module FeatureHub
       end
 
       def enabled?(key)
-        @repo.feature(key).enabled?
+        feature(key).enabled?
       end
 
       def feature(key)
@@ -94,38 +94,38 @@ module FeatureHub
       end
 
       def set?(key)
-        @repo.feature(key).set?
+        feature(key).set?
       end
 
       def number(key)
-        @repo.feature(key).number
+        feature(key).number
       end
 
       def string(key)
-        @repo.feature(key).string
+        feature(key).string
       end
 
       def json(key)
-        data = @repo.feature(key).raw_json
+        data = feature(key).raw_json
         return JSON.parse(data) if data
 
         nil
       end
 
       def raw_json(key)
-        @repo.feature(key).raw_json
+        feature(key).raw_json
       end
 
       def flag(key)
-        @repo.feature(key).flag
+        feature(key).flag
       end
 
       def boolean(key)
-        @repo.feature(key).boolean
+        feature(key).boolean
       end
 
       def exists?(key)
-        @repo.feature(key).exists?
+        feature(key).exists?
       end
 
       def build
@@ -147,9 +147,12 @@ module FeatureHub
 
       def build
         @edge.poll
+        self
       end
 
-      def build_sync; end
+      def build_sync
+        self
+      end
 
       def feature(key)
         @repo.feature(key).with_context(self)

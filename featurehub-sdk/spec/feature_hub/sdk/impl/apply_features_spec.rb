@@ -155,4 +155,32 @@ RSpec.describe FeatureHub::Sdk::Impl::ApplyFeature do
       expect(found.value).to eq(nil)
     end
   end
+
+  it "should return false if the supplied value is nil, the attribute value has a value and its an equals comparison" do
+    # cond = instance_double(FeatureHub::Sdk::Impl::RolloutStrategyAttributeCondition)
+    # expect(cond).to receive(:equals?).and_return(true)
+    attr = instance_double(FeatureHub::Sdk::Impl::RolloutStrategyAttribute)
+    expect(attr).to receive(:field_name).and_return("userkey").at_least(:once)
+    expect(attr).to receive(:values).and_return("fred").at_least(:once) # only one thing needs to be nil
+    # expect(attr).to receive(:conditional).and_return(cond)
+    rs = instance_double(FeatureHub::Sdk::Impl::RolloutStrategy)
+    expect(rs).to receive(:attributes).and_return([attr])
+
+    expect(context).to receive(:get_attr).with("userkey").and_return(nil)
+    expect(apply.match_attribute(context, rs)).to eq(false)
+  end
+
+  it "should return true if the supplied and attribute value are null and the condition is equals" do
+    cond = instance_double(FeatureHub::Sdk::Impl::RolloutStrategyAttributeCondition)
+    expect(cond).to receive(:equals?).and_return(true)
+    attr = instance_double(FeatureHub::Sdk::Impl::RolloutStrategyAttribute)
+    expect(attr).to receive(:field_name).and_return("userkey").at_least(:once)
+    expect(attr).to receive(:values).and_return(nil).at_least(:once) # only one thing needs to be nil
+    expect(attr).to receive(:conditional).and_return(cond)
+    rs = instance_double(FeatureHub::Sdk::Impl::RolloutStrategy)
+    expect(rs).to receive(:attributes).and_return([attr])
+
+    expect(context).to receive(:get_attr).with("userkey").and_return(nil)
+    expect(apply.match_attribute(context, rs)).to eq(true)
+  end
 end

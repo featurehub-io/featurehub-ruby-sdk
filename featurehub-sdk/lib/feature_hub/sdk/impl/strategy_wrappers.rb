@@ -154,9 +154,7 @@ module FeatureHub
 
       # interface for the matcher repository finder
       class MatcherRepository
-        def find_matcher(attr)
-          ;
-        end
+        def find_matcher(attr); end
       end
 
       # figures out what attribute type this is and passes back the right matcher
