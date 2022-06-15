@@ -65,7 +65,8 @@ RSpec.describe FeatureHub::Sdk::FeatureHubConfig do
     it "should attempt to set up the edge service on init" do
       edge = instance_double(FeatureHub::Sdk::EdgeService)
       initializer = double
-      expect(initializer).to receive(:call).with(config.repository, config.api_keys, config.edge_url).and_return(edge)
+      expect(initializer).to receive(:call).with(config.repository, config.api_keys, config.edge_url,
+                                                 anything).and_return(edge)
       config.edge_service_provider(initializer)
 
       expect(config.get_or_create_edge_service).to eq(edge)
@@ -79,7 +80,7 @@ RSpec.describe FeatureHub::Sdk::FeatureHubConfig do
 
     it "new_context should give us a server context" do
       edge = instance_double(FeatureHub::Sdk::EdgeService)
-      config.edge_service_provider(->(_x, _y, _z) { edge })
+      config.edge_service_provider(->(_x, _y, _z, _l) { edge })
       context = config.new_context
       expect(context).to be_a FeatureHub::Sdk::ServerEvalFeatureContext
     end
@@ -88,7 +89,7 @@ RSpec.describe FeatureHub::Sdk::FeatureHubConfig do
   it "should use a client context with client keys" do
     config = FeatureHub::Sdk::FeatureHubConfig.new("http://localhost", ["abc*123"])
     edge = instance_double(FeatureHub::Sdk::EdgeService)
-    config.edge_service_provider(->(_x, _y, _z) { edge })
+    config.edge_service_provider(->(_x, _y, _z, _l) { edge })
     context = config.new_context
     expect(context).to be_a FeatureHub::Sdk::ClientEvalFeatureContext
   end
@@ -96,12 +97,12 @@ RSpec.describe FeatureHub::Sdk::FeatureHubConfig do
   it "should close the previous edge service when swapping" do
     edge1 = instance_double(FeatureHub::Sdk::EdgeService)
     edge2 = instance_double(FeatureHub::Sdk::EdgeService)
-    edge_provider = ->(_x, _y, _z) { edge1 }
+    edge_provider = ->(_x, _y, _z, _l) { edge1 }
     config = FeatureHub::Sdk::FeatureHubConfig.new("http://localhost", ["abc*123"],
                                                    instance_double(FeatureHub::Sdk::FeatureHubRepository),
                                                    edge_provider)
     expect(edge1).to receive(:close)
     config.new_context
-    config.edge_service_provider(->(_x, _y, _z) { edge2 })
+    config.edge_service_provider(->(_x, _y, _z, _l) { edge2 })
   end
 end

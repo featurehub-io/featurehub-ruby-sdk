@@ -5,7 +5,7 @@ require "json"
 RSpec.describe FeatureHub::Sdk::StreamingEdgeService do
   let(:repo) { instance_double(FeatureHub::Sdk::InternalFeatureRepository) }
   let(:sse) { instance_double(SSE::Client) }
-  let(:streaming) { FeatureHub::Sdk::StreamingEdgeService.new(repo, ["api_key"], "url") }
+  let(:streaming) { FeatureHub::Sdk::StreamingEdgeService.new(repo, ["api_key"], "url/") }
 
   before do
     expect(SSE::Client).to receive(:new).with("url/features/api_key").and_yield(sse).and_return(sse)
