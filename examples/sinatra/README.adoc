@@ -1,3 +1,10 @@
 = Sinatra Example
 
-Samples taken from https://github.com/remi/sinatra-kickstart
+This is a simple todo server example that we use to run our Cucumber tests against
+to ensure that the SDK is operating as expected. Please read the `application.rb`
+for details on how it works, it is fairly simple.
+
+It can be built into a Passenger dockerfile using the `build.sh` script and started
+using `docker_start.sh`
+
+

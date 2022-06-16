@@ -41,6 +41,16 @@ module FeatureHub
 
       def init
         get_or_create_edge_service.poll
+        self
+      end
+
+      def force_new_edge_service
+        if @edge_service
+          @edge_service&.close
+          @edge_service = nil
+        end
+
+        get_or_create_edge_service
       end
 
       # rubocop:disable Naming/AccessorMethodName

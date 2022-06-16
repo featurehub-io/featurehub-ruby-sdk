@@ -40,7 +40,6 @@ module FeatureHub
       def start_streaming
         @closed = false
         @logger.info("streaming from #{@url}")
-        puts("streaming from #{@url}")
         @sse_client = SSE::Client.new(@url) do |client|
           client.on_event do |event|
             @repository.notify(event.type, JSON.parse(event.data))

@@ -12,7 +12,6 @@ def configure_featurehub
                                                              "default/9b71f803-da79-4c04-8081-e5c0176dda87/CtVlmUHirgPd9Qz92Y0IQauUMUv3Wb*4dacoo47oYp6hSFFjVkG")
                                                  ])
   config.init
-  config
 end
 
 Todo = Struct.new(:id, :title, :resolved)
@@ -122,11 +121,14 @@ class App < Sinatra::Base
       new_title = new_title.upcase
     end
 
-    # puts("enabled? #{ctx.repo.features}")
-    # puts(ctx.enabled?("FEATURE_TITLE_TO_UPPERCASE"))
-    # puts(ctx.flag("FEATURE_TITLE_TO_UPPERCASE"))
-    # puts(settings.fh_config.repository.feature("FEATURE_TITLE_TO_UPPERCASE").feature_type)
-    # puts(settings.fh_config.repository.feature("FEATURE_TITLE_TO_UPPERCASE").flag)
+    puts("features via repository: #{settings.fh_config.repository.features}")
+    puts("features via edge service: #{settings.fh_config.get_or_create_edge_service.repository}")
+
+    puts("enabled? #{ctx.repo.features}")
+    puts(ctx.enabled?("FEATURE_TITLE_TO_UPPERCASE"))
+    puts(ctx.flag("FEATURE_TITLE_TO_UPPERCASE"))
+    puts(settings.fh_config.repository.feature("FEATURE_TITLE_TO_UPPERCASE").feature_type)
+    puts(settings.fh_config.repository.feature("FEATURE_TITLE_TO_UPPERCASE").flag)
 
     new_title
   end
