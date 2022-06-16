@@ -1,5 +1,7 @@
-PATH
-  remote: ../..
+GIT
+  remote: https://github.com/featurehub-io/featurehub-ruby-sdk.git
+  revision: df989db03a0f472ad3060d02b49955173ab04919
+  glob: featurehub-sdk/*.gemspec
   specs:
     featurehub-sdk (0.0.1)
       concurrent-ruby (~> 1.1.10)
@@ -34,7 +36,7 @@ GEM
     http-cookie (1.0.5)
       domain_name (~> 0.5)
     http-form_data (2.3.0)
-    ld-eventsource (2.2.0)
+    ld-eventsource (2.2.1)
       concurrent-ruby (~> 1.0)
       http (>= 4.4.1, < 6.0.0)
     llhttp-ffi (0.4.0)

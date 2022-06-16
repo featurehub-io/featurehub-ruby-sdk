@@ -28,12 +28,12 @@ RUN apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a
     apt-get clean -y && \
     rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 # set up passenger
-COPY conf/nginx.conf /etc/nginx/nginx.conf
 
-ENV BUNDLE_PATH /bundle
+#ENV BUNDLE_PATH /bundle
 RUN passenger-config build-native-support
-
+RUN gem update --system
 RUN mkdir -p /app/featurehub
+COPY conf/nginx.conf /etc/nginx/nginx.conf
 COPY Gemfile Gemfile.lock /app/featurehub/
 WORKDIR /app/featurehub
 RUN cd /app/featurehub && bundle install

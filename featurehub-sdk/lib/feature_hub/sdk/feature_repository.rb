@@ -19,7 +19,9 @@ module FeatureHub
       end
 
       def notify(status, data)
-        if status == "failed"
+        return unless status
+
+        if status.to_sym == :failed
           @ready = false
           return
         end
