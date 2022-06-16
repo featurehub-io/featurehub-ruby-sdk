@@ -3,7 +3,7 @@
 module FeatureHub
   # already documented elsewhere
   module Sdk
-    VERSION = "0.0.1"
+    VERSION = "1.0.0"
 
     def default_logger
       log = ::Logger.new($stdout)
