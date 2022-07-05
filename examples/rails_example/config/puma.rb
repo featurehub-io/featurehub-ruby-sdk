@@ -41,3 +41,15 @@ pidfile ENV.fetch("PIDFILE") { "tmp/pids/server.pid" }
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
+
+on_worker_boot do
+  # Worker specific setup for Rails 4.1+
+  # See: https://devcenter.heroku.com/articles/deploying-rails-applications-with-the-puma-web-server#on-worker-boot
+  ActiveRecord::Base.establish_connection
+
+  # configure FeatureHub
+  Rails.configuration.fh_config = Rails.configuration.fh_config = FeatureHub::Sdk::FeatureHubConfig.new(
+    "http://0.0.0.0:8085/",
+    ["TODO_CHANGE_ME"],
+  ).init
+end
