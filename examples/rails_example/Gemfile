@@ -6,6 +6,9 @@ ruby "3.1.2"
 # The most relevant gem for this particular app
 gem 'featurehub-sdk'
 
+# Dotenv helps us manage environment variables
+gem 'dotenv-rails'
+
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.0.3"
 

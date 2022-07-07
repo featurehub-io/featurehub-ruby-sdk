@@ -49,7 +49,7 @@ on_worker_boot do
 
   # configure FeatureHub
   Rails.configuration.fh_config = Rails.configuration.fh_config = FeatureHub::Sdk::FeatureHubConfig.new(
-    "http://0.0.0.0:8085/",
-    ["TODO_CHANGE_ME"],
+    ENV.fetch("FEATUREHUB_EDGE_URL"),
+    [ENV.fetch("FEATUREHUB_CLIENT_API_KEY")],
   ).init
 end

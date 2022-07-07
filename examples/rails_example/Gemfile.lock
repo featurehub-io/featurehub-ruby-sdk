@@ -90,6 +90,10 @@ GEM
     digest (3.1.0)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
+    dotenv (2.7.6)
+    dotenv-rails (2.7.6)
+      dotenv (= 2.7.6)
+      railties (>= 3.2)
     erubi (1.10.0)
     faraday (2.3.0)
       faraday-net_http (~> 2.0)
@@ -254,6 +258,7 @@ DEPENDENCIES
   bootsnap
   capybara
   debug
+  dotenv-rails
   featurehub-sdk
   importmap-rails
   jbuilder
