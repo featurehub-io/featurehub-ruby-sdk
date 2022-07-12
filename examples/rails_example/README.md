@@ -19,7 +19,8 @@ running `bundle install`.
 
 ## FeatureHub Setup
 
-In order for this app to work locally you'll need to have FeatureHub set up on your machine. In order to get the simplest version of FeatureHub working, run the command from [Evaluating FeatureHub](https://docs.featurehub.io/featurehub/latest/index.html#_evaluating_featurehub).
+In order for this app to work locally you'll need to have FeatureHub set up on your machine or have an instance running somewhere.
+In order to get the simplest version of FeatureHub working, run the command from [Evaluating FeatureHub](https://docs.featurehub.io/featurehub/latest/index.html#_evaluating_featurehub).
 
 Now that FH is running, head to the Admin Console (probably running at http://localhost:8085). You'll be taken through a workflow to create a user, and then there will be some instructions on the right side of your screen.
 
@@ -30,4 +31,6 @@ Complete all of those steps, and when you create a feature make sure that the fe
 To use the FeatureHub Ruby SDK in your Rails app, you need to install it first! Check out the [Gemfile](Gemfile#L7) to
 see how you can install the gem in your Rails app.
 
-Update the [FeatureHub Initializer](examples/rails_example/config/initializers/featurehub.rb#L15) API key to the API key that you retrieved within your local FH instance to make sure that flag evaluations occur correctly!
+Copy the [.env.example](examples/rails_example/.env.example) and rename the copy to `.env.local`. Change the API key to 
+the API key that you retrieved within your local FH instance to make sure that flag evaluations occur correctly! Similarly,
+you may need to update the edge URL depending on how you intend to run this app and FeatureHub.
