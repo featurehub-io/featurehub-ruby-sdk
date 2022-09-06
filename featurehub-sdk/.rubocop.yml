@@ -12,6 +12,9 @@ Style/StringLiteralsInInterpolation:
 Metrics/BlockLength:
   Enabled: false
 
+Metrics/ClassLength:
+  Enabled: false
+
 # affects similarity to other SDKs + pointless
 Metrics/MethodLength:
   Enabled: false
