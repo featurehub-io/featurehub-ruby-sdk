@@ -13,24 +13,26 @@ RSpec.describe FeatureHub::Sdk::ClientContext do
   end
 
   it "should store and retrieve context" do
-    expect(@ctx.user_key("fred").get_attr(ContextKeys::USERKEY)).to eq("fred")
-    country = FeatureHub::Sdk::StrategyAttributeCountryName::Afghanistan
-    expect(@ctx.country(country).get_attr(ContextKeys::COUNTRY)).to eq(country)
-    device = FeatureHub::Sdk::StrategyAttributeDeviceName::Browser
-    expect(@ctx.device(device).get_attr(ContextKeys::DEVICE)).to eq(device)
+    aggregate_failures do
+      expect(@ctx.user_key("fred").get_attr(ContextKeys::USERKEY)).to eq(["fred"])
+      country = FeatureHub::Sdk::StrategyAttributeCountryName::Afghanistan
+      expect(@ctx.country(country).get_attr(ContextKeys::COUNTRY)).to eq([country])
+      device = FeatureHub::Sdk::StrategyAttributeDeviceName::Browser
+      expect(@ctx.device(device).get_attr(ContextKeys::DEVICE)).to eq([device])
 
-    version = "1.567"
-    expect(@ctx.version(version).get_attr(ContextKeys::VERSION)).to eq(version)
+      version = "1.567"
+      expect(@ctx.version(version).get_attr(ContextKeys::VERSION)).to eq([version])
 
-    expect(@ctx.attribute_value("flavour", "cumberlands").get_attr("flavour")).to eq("cumberlands")
-    expect(@ctx.attribute_value("texture", %w[crisp hearty]).get_attr("texture")).to eq("crisp")
+      expect(@ctx.attribute_value("flavour", "cumberlands").get_attr("flavour")).to eq(["cumberlands"])
+      expect(@ctx.attribute_value("texture", %w[crisp hearty]).get_attr("texture")).to eq(%w[crisp hearty])
 
-    platform = FeatureHub::Sdk::StrategyAttributePlatformName::Ios
-    @ctx.platform(platform)
-    expect(@ctx.get_attr(ContextKeys::PLATFORM)).to eq(platform)
+      platform = FeatureHub::Sdk::StrategyAttributePlatformName::Ios
+      @ctx.platform(platform)
+      expect(@ctx.get_attr(ContextKeys::PLATFORM)).to eq([platform])
 
-    @ctx.clear
-    expect(@ctx.get_attr(ContextKeys::PLATFORM)).to eq(nil)
+      @ctx.clear
+      expect(@ctx.get_attr(ContextKeys::PLATFORM)).to eq([])
+    end
   end
 
   it "should be able to use user or session value for default percentage" do
