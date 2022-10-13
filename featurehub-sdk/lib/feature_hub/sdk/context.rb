@@ -73,7 +73,7 @@ module FeatureHub
       end
 
       def get_attr(key, default_val = nil)
-        (@attributes[key.to_sym] || [default_val])[0]
+        (@attributes[key.to_sym] || [default_val]).compact
       end
 
       def default_percentage_key

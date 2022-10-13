@@ -33,7 +33,7 @@ RSpec.describe FeatureHub::Sdk::Impl::ApplyFeature do
 
   it "should be false if no strategies match context" do
     expect(context).to receive(:default_percentage_key).and_return("userkey-value")
-    expect(context).to receive(:get_attr).with("warehouseId").and_return(nil)
+    expect(context).to receive(:get_attr).with("warehouseId").and_return([])
     json_data = JSON.parse({
       attributes: [
         {
@@ -53,7 +53,7 @@ RSpec.describe FeatureHub::Sdk::Impl::ApplyFeature do
   describe "match receivers" do
     before do
       expect(context).to receive(:default_percentage_key).and_return("userkey-value")
-      expect(context).to receive(:get_attr).with("warehouseId").and_return("ponsonby")
+      expect(context).to receive(:get_attr).with("warehouseId").and_return(["ponsonby"])
       json_data = JSON.parse({
         value: "sausage",
         attributes: [
@@ -93,8 +93,8 @@ RSpec.describe FeatureHub::Sdk::Impl::ApplyFeature do
   end
 
   it "should extract values ouf of context when calculating percentage" do
-    expect(context).to receive(:get_attr).with("a", "<none>").and_return("one-thing")
-    expect(context).to receive(:get_attr).with("b", "<none>").and_return("two-thing")
+    expect(context).to receive(:get_attr).with("a", "<none>").and_return(["one-thing"])
+    expect(context).to receive(:get_attr).with("b", "<none>").and_return(["two-thing"])
     strategy = instance_double(FeatureHub::Sdk::Impl::RolloutStrategy)
     expect(strategy).to receive(:percentage_attributes?).and_return(true)
     expect(strategy).to receive(:percentage_attributes).and_return(%w[a b])
@@ -140,7 +140,7 @@ RSpec.describe FeatureHub::Sdk::Impl::ApplyFeature do
 
     # this one is more of an integration test as the strategy matchers are not mocked out
     it "should match percentage and match attributes" do
-      expect(context).to receive(:get_attr).with("warehouseId").and_return("ponsonby").at_least(:once)
+      expect(context).to receive(:get_attr).with("warehouseId").and_return(["ponsonby"]).at_least(:once)
       apply = FeatureHub::Sdk::Impl::ApplyFeature.new(percent, FeatureHub::Sdk::Impl::MatcherRegistry.new)
       found = apply.apply([rsi], "FEATURE_NAME", "fid", context)
       expect(found.matched).to eq(true)
@@ -148,7 +148,7 @@ RSpec.describe FeatureHub::Sdk::Impl::ApplyFeature do
     end
 
     it "should not match the attribute and hence fail the overall percent match" do
-      expect(context).to receive(:get_attr).with("warehouseId").and_return(nil).at_least(:once)
+      expect(context).to receive(:get_attr).with("warehouseId").and_return([]).at_least(:once)
       apply = FeatureHub::Sdk::Impl::ApplyFeature.new(percent, FeatureHub::Sdk::Impl::MatcherRegistry.new)
       found = apply.apply([rsi], "FEATURE_NAME", "fid", context)
       expect(found.matched).to eq(false)
@@ -166,7 +166,7 @@ RSpec.describe FeatureHub::Sdk::Impl::ApplyFeature do
     rs = instance_double(FeatureHub::Sdk::Impl::RolloutStrategy)
     expect(rs).to receive(:attributes).and_return([attr])
 
-    expect(context).to receive(:get_attr).with("userkey").and_return(nil)
+    expect(context).to receive(:get_attr).with("userkey").and_return([])
     expect(apply.match_attribute(context, rs)).to eq(false)
   end
 
@@ -180,7 +180,7 @@ RSpec.describe FeatureHub::Sdk::Impl::ApplyFeature do
     rs = instance_double(FeatureHub::Sdk::Impl::RolloutStrategy)
     expect(rs).to receive(:attributes).and_return([attr])
 
-    expect(context).to receive(:get_attr).with("userkey").and_return(nil)
+    expect(context).to receive(:get_attr).with("userkey").and_return([])
     expect(apply.match_attribute(context, rs)).to eq(true)
   end
 end

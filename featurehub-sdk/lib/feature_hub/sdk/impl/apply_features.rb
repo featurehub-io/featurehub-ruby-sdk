@@ -67,26 +67,30 @@ module FeatureHub
 
         def match_attribute(context, rs_attr)
           rs_attr.attributes.each do |attr|
-            supplied_value = context.get_attr(attr.field_name)
-            if supplied_value.nil? && attr.field_name.downcase == "now"
+            supplied_values = context.get_attr(attr.field_name)
+            if supplied_values.empty? && attr.field_name.downcase == "now"
               case attr.field_type
               when "DATE"
-                supplied_value = Time.new.utc.iso8601[0..9]
+                supplied_values = [Time.new.utc.iso8601[0..9]]
               when "DATETIME"
-                supplied_value = Time.new.utc.iso8601
+                supplied_values = [Time.new.utc.iso8601]
               end
             end
 
-            if attr.values.nil? && supplied_value.nil?
+            if attr.values.nil? && supplied_values.empty?
               return false unless attr.conditional.equals?
 
               next
             end
 
-            return false if attr.values.nil? || supplied_value.nil?
+            return false if attr.values.nil? || supplied_values.empty?
 
             # this attribute has to match or we failed
-            return false unless @matcher_repository.find_matcher(attr).match(supplied_value, attr)
+            match = supplied_values.any? do |supplied_value|
+              @matcher_repository.find_matcher(attr).match(supplied_value, attr)
+            end
+
+            return false unless match
           end
 
           true
