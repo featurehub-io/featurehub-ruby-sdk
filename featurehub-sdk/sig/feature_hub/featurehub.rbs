@@ -1,6 +1,7 @@
 module FeatureHub
   module Sdk
     VERSION: String
+
     # See the writing guide of rbs: https://github.com/ruby/rbs#guides
     #
 
@@ -11,13 +12,17 @@ module FeatureHub
           feature_state: Hash[untyped, untyped]?, parent_state: FeatureState?, ctx: ClientContext?) -> void
 
       def locked?: -> bool
+
       def exists?: (top_feature: FeatureState?) -> bool
+
       def id: -> String?
+
       def feature_type: -> String?
 
       def with_context: (ctx: ClientContext) -> FeatureState
 
       def update_feature_state: (feature_state: Hash[untyped, untyped]) -> void
+
       # this is the feature state of the top level, it always walks up
       def feature_state: () -> Hash[untyped, untyped]
 
@@ -57,19 +62,20 @@ module FeatureHub
       attr_reader matched: bool
       attr_reader value: [bool? | String? | Float?]
 
-      def initialize:(matched: bool, value: [bool? | String? | Float?]) -> void
+      def initialize: (matched: bool, value: [bool? | String? | Float?]) -> void
     end
 
     class InterceptorValue
-      def initialize: (val: [bool? | String? | Float? ]) -> void
-      def cast:(feature_type: String?) -> [bool? | String? | Float? ]
+      def initialize: (val: [bool? | String? | Float?]) -> void
+
+      def cast: (feature_type: String?) -> [bool? | String? | Float?]
     end
 
     class ValueInterceptor
       def intercepted_value: (feature_key: Symbol) -> InterceptorValue?
     end
 
-    class EnvironmentInterceptor <  ValueInterceptor
+    class EnvironmentInterceptor < ValueInterceptor
     end
 
     class PercentageCalculator
@@ -78,17 +84,25 @@ module FeatureHub
 
     class ApplyFeatures
       def initialize: (percent_calculator: PercentageCalculator?, matcher_repository: MatcherRepository?) -> void
+
       def apply: (strategies: Array[RolloutStrategy], key: String, feature_value_id: String, context: ClientContext) -> Applied
+
       def match_attribute: (context: ClientContext, rs: RolloutStrategyAttribute) -> bool
+
       def self.determine_percentage_key: (context: ClientContext, rsi: RolloutStrategy) -> String?
     end
 
     class InternalFeatureRepository
       def feature: (key: String) -> FeatureState?
+
       def find_interceptor: (feature_value: String) -> InterceptorValue?
+
       def ready?: -> bool
+
       def not_ready!: -> void
+
       def apply: (strategies: Array[RolloutStrategy], key: String, feature_id: String, context: ClientContext) -> Applied
+
       def notify: (status: String, data: Hash[untyped, untyped]) -> void
     end
 
@@ -96,15 +110,20 @@ module FeatureHub
       @features: Hash[String, FeatureState]
       @ready: bool
 
-      def initialize: (apply_features: nil | ApplyFeatures ) -> void
-      def apply:(strategies: Array[RolloutStrategy], key: String, feature_id: String, context: ClientContext) -> Applied
+      def initialize: (apply_features: nil | ApplyFeatures) -> void
+
+      def apply: (strategies: Array[RolloutStrategy], key: String, feature_id: String, context: ClientContext) -> Applied
 
       def notify: (status: String, data: Hash[untyped, untyped]) -> void
+
       def feature: (key: String) -> FeatureState
+
       def register_interceptor: (interceptor: ValueInterceptor) -> void
 
       def find_interceptor: (feature_value: String) -> InterceptorValue?
+
       def ready?: -> bool
+
       def not_ready!: -> void
 
       def extract_feature_state: -> Array[Hash[untyped, untyped]]
@@ -114,37 +133,61 @@ module FeatureHub
       attr_reader repo: InternalFeatureRepository
 
       def initialize: (repository: InternalFeatureRepository) -> void
+
       def user_key: (value: String) -> ClientContext
+
       def session_key: (value: String) -> ClientContext
+
       def version: (value: String) -> ClientContext
-      def country: (value: Symbol ) -> ClientContext
-      def platform: (value: Symbol ) -> ClientContext
-      def device: (value: Symbol ) -> ClientContext
-      def attribute_value: (key: String, values: Array[String] ) -> ClientContext
+
+      def country: (value: Symbol) -> ClientContext
+
+      def platform: (value: Symbol) -> ClientContext
+
+      def device: (value: Symbol) -> ClientContext
+
+      def attribute_value: (key: String, values: Array[String]) -> ClientContext
+
       def clear: -> ClientContext
-      def get_attr: (key: String, default_val: String?) -> String?
+
+      def get_attr: (key: String, default_val: String?) -> Array[String]
+
       def default_percentage_key: -> String?
+
       def enabled: (key: String) -> bool?
 
       def feature: (key: String) -> FeatureState
+
       def set?: (key: String) -> bool?
+
       def number: (key: String) -> Float?
+
       def string: (key: String) -> String?
+
       def json: (key: String) -> Hash[untyped, untyped]?
+
       def raw_json: (key: String) -> String?
+
       def flag: (key: String) -> bool?
+
       def boolean: (key: String) -> bool?
+
       def exists?: (key: String) -> bool
 
       def build: -> ClientContext
+
       def build_sync: -> ClientContext
+
       def close: -> ClientContext
     end
 
     class EdgeService
       def initialize: (repository: InternalFeatureRepository, api_keys: Array[String], edge_url: String) -> void
+
       def poll: -> void
+
       def context_change: (new_header: String?) -> void
+
       def close: -> void
     end
 
@@ -189,15 +232,25 @@ module FeatureHub
 
     class RolloutStrategyCondition
       def equals?: -> bool
+
       def ends_with?: -> bool
+
       def starts_with?: -> bool
+
       def greater?: -> bool
+
       def greater_equals?: -> bool
+
       def less?: -> bool
+
       def less_equals?: -> bool
+
       def not_equals?: -> bool
+
       def includes?: -> bool
+
       def excludes?: -> bool
+
       def regex?: -> bool
     end
 
@@ -209,6 +262,7 @@ module FeatureHub
       attr_reader field_type: String
 
       def float_values: -> Array[Float]
+
       def str_values: -> Array[String]
     end
 
@@ -221,15 +275,16 @@ module FeatureHub
       attr_reader value: [bool? | String? | Float?]
 
       def percentage_attributes?: -> bool
+
       def attributes?: -> bool
     end
 
     class StrategyMatcher
-      def match: (supplied_value: String, attr: RolloutStrategyAttribute ) -> bool
+      def match: (supplied_value: String, attr: RolloutStrategyAttribute) -> bool
     end
 
     class BooleanMatcher < StrategyMatcher
-      def match: (supplied_value: String, attr: RolloutStrategyAttribute ) -> bool
+      def match: (supplied_value: String, attr: RolloutStrategyAttribute) -> bool
     end
 
     class StringMatcher < StrategyMatcher
@@ -250,7 +305,6 @@ module FeatureHub
 
     class MatcherRegistry < MatcherRepository
     end
-end
+  end
 
-end
 end

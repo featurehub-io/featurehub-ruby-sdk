@@ -134,6 +134,14 @@ def name_arg(name)
 end
 ```
 
+Well known fields have their own methods, or you can add custom
+values for fields using `attribute_value(key, [values])`. For
+example if you wish to trigger on specific contract ids and each
+user could have a different set of contract ids, you can add those
+`attribute_value("contract_values", [2,17,45])` and have configured
+your strategy with a list of contract values which trigger the feature.
+
+
 See more options to request feature states [here](https://github.com/featurehub-io/featurehub-ruby-sdk/blob/main/featurehub-sdk/lib/feature_hub/sdk/context.rb)
 
 ### Using inside popular web servers
