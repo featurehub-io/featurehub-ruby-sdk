@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    featurehub-sdk (1.1.0)
+    featurehub-sdk (1.2.0)
       concurrent-ruby (~> 1.1.10)
       faraday (~> 2.3)
       ld-eventsource (~> 2.2.0)

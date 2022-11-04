@@ -6,11 +6,13 @@ require "featurehub-sdk"
 require "json"
 
 def configure_featurehub
-  config = FeatureHub::Sdk::FeatureHubConfig.new(ENV.fetch("FEATUREHUB_EDGE_URL", "https://zjbisc.demo.featurehub.io"),
+  puts "FeatureHub SDK Version is #{FeatureHub::Sdk::VERSION}"
+  config = FeatureHub::Sdk::FeatureHubConfig.new(ENV.fetch("FEATUREHUB_EDGE_URL", "http://localhost:8903"),
                                                  [
                                                    ENV.fetch("FEATUREHUB_CLIENT_API_KEY",
-                                                             "default/9b71f803-da79-4c04-8081-e5c0176dda87/CtVlmUHirgPd9Qz92Y0IQauUMUv3Wb*4dacoo47oYp6hSFFjVkG")
+                                                             "41ef6f5e-a70b-4ace-b6b5-8a3f1d636101/2PTj12Bn50Xn7Wt4yS9heBXtok3KGFAE9KW0Cms3")
                                                  ])
+  config.use_polling_edge_service(1)
   config.init
 end
 
@@ -26,6 +28,10 @@ class App < Sinatra::Base
 
     set :fh_config, configure_featurehub
     set :users, {}
+  end
+
+  before do
+    content_type 'application/json'
   end
 
   # Routes
@@ -52,7 +58,8 @@ class App < Sinatra::Base
   # delete a user
   delete('/todo/:user') do
     user = params['user']
-    delete settings.users[user]
+    users = settings.users || {}
+    users[user] = []
     status(204)
   end
 
@@ -114,7 +121,12 @@ class App < Sinatra::Base
     end
 
     if ctx.set?("FEATURE_JSON") && title == "find"
-      new_title = "#{title} #{ctx.json('foo')}"
+      json = ctx.json("FEATURE_JSON")
+      if json.nil?
+        new_title = "#{title}"
+      else
+        new_title = "#{title} #{json['foo']}"
+      end
     end
 
     if ctx.enabled?("FEATURE_TITLE_TO_UPPERCASE")
@@ -130,6 +142,6 @@ class App < Sinatra::Base
     puts(settings.fh_config.repository.feature("FEATURE_TITLE_TO_UPPERCASE").feature_type)
     puts(settings.fh_config.repository.feature("FEATURE_TITLE_TO_UPPERCASE").flag)
 
-    new_title
+    new_title&.strip
   end
 end

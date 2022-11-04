@@ -74,7 +74,10 @@ module FeatureHub
         edge_provider
       end
 
-      def use_polling_edge_service(interval = ENV.fetch("FEATUREHUB_POLL_INTERVAL", "30").to_i); end
+      def use_polling_edge_service(interval = ENV.fetch("FEATUREHUB_POLL_INTERVAL", "30").to_i)
+        @interval = interval
+        @edge_service_provider = method(:create_polling_edge_provider)
+      end
 
       def new_context
         get_or_create_edge_service
@@ -99,8 +102,11 @@ module FeatureHub
         @edge_service_provider.call(@repository, @api_keys, @edge_url, @logger)
       end
 
+      def create_polling_edge_provider(repo, api_keys, edge_url, logger)
+        FeatureHub::Sdk::PollingEdgeService.new(repo, api_keys, edge_url, @interval, logger)
+      end
+
       def create_default_provider(repo, api_keys, edge_url, logger)
-        # FeatureHub::Sdk::PollingEdgeService.new(repo, api_keys, edge_url, 10, logger)
         FeatureHub::Sdk::StreamingEdgeService.new(repo, api_keys, edge_url, logger)
       end
 
