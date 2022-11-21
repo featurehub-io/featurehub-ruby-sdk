@@ -4,12 +4,13 @@ require "faraday"
 require "faraday/net_http"
 require "json"
 require "concurrent-ruby"
+require "digest/sha2"
 
 module FeatureHub
   module Sdk
     # uses a periodic polling mechanism to get updates
     class PollingEdgeService < EdgeService
-      attr_reader :repository, :api_keys, :edge_url, :interval
+      attr_reader :repository, :api_keys, :edge_url, :interval, :stopped, :etag, :cancel, :sha_context
 
       def initialize(repository, api_keys, edge_url, interval, logger = nil)
         super(repository, api_keys, edge_url)
@@ -25,6 +26,8 @@ module FeatureHub
         @cancel = false
         @context = nil
         @etag = nil
+        @stopped = false
+        @sha_context = nil
 
         generate_url
       end
@@ -48,34 +51,53 @@ module FeatureHub
         return if new_header == @context
 
         @context = new_header
+        @sha_context = Digest::SHA256.hexdigest(@context)
 
-        get_updates
+        if active
+          get_updates
+        else
+          poll
+        end
       end
 
       def close
         cancel_task
       end
 
+      def active
+        !@task.nil?
+      end
+
       private
 
       def poll_with_interval
-        return if @cancel || !@task.nil?
+        return if @cancel || !@task.nil? || @stopped
+
+        @logger.info("starting polling for #{determine_request_url}")
+        @task = Concurrent::TimerTask.new(execution_interval: @interval, run_now: false) do
+          get_updates
+        end
 
         get_updates
 
-        @logger.info("starting polling for #{determine_request_url}")
-        @task = Concurrent::TimerTask.new(execution_interval: @interval) do
-          get_updates
-        end
-        @task.execute
+        @task&.execute # could have been shutdown
       end
 
       def cancel_task
+        @cancel = true
+        shutdown_task
+      end
+
+      def stopped_task
+        @stopped = true
+        shutdown_task
+      end
+
+      def shutdown_task
         return if @task.nil?
 
         @task.shutdown
         @task = nil
-        @cancel = true
       end
 
       # rubocop:disable Naming/AccessorMethodName
@@ -86,24 +108,38 @@ module FeatureHub
           "X-SDK": "Ruby",
           "X-SDK-Version": FeatureHub::Sdk::VERSION
         }
+
+        headers["x-featurehub"] = @context unless @context.nil?
         headers["if-none-match"] = @etag unless @etag.nil?
+
         @logger.debug("polling for #{url}")
-        resp = @conn.get(url, request: { timeout: @timeout }, headers: headers)
+        resp = @conn.get url, {}, headers
         case resp.status
         when 200
-          @etag = resp.headers["etag"]
-          process_results(JSON.parse(resp.body))
+          success(resp)
+        when 236
+          stopped_task
+          success(resp)
         when 404 # no such key
           @repository.notify("failed", nil)
-          @cancel = true
+          cancel_task
           @logger.error("featurehub: key does not exist, stopping polling")
         when 503 # dacha busy
-          @logger.debug("featurehub: dacha is busy, trying tgaina")
+          @logger.debug("featurehub: dacha is busy, trying again")
         else
           @logger.debug("featurehub: unknown error #{resp.status}")
         end
       end
+
       # rubocop:enable Naming/AccessorMethodName
+
+      def success(resp)
+        @etag = resp.headers["etag"]
+
+        check_interval_change(resp.headers["cache-control"]) if resp.headers["cache-control"]
+
+        process_results(JSON.parse(resp.body))
+      end
 
       def process_results(data)
         data.each do |environment|
@@ -111,11 +147,24 @@ module FeatureHub
         end
       end
 
+      def check_interval_change(cache_control_header)
+        found = cache_control_header.scan(/max-age=(\d+)/)
+
+        return if @task.nil? || found.empty? || found[0].empty?
+
+        new_interval = found[0][0].to_i
+
+        return unless new_interval.positive? && new_interval != @interval
+
+        @interval = new_interval
+        @task.execution_interval = @interval
+      end
+
       def determine_request_url
         if @context.nil?
-          @url
+          "#{@url}&contextSha=0"
         else
-          "#{@url}&#{@context}"
+          "#{@url}&contextSha=#{@sha_context}"
         end
       end
 
@@ -125,6 +174,7 @@ module FeatureHub
         @timeout = ENV.fetch("FEATUREHUB_POLL_HTTP_TIMEOUT", "12").to_i
         @conn = Faraday.new(url: @edge_url) do |f|
           f.adapter :net_http
+          f.options.timeout = @timeout
         end
       end
     end

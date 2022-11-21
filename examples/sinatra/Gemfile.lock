@@ -1,9 +1,7 @@
-GIT
-  remote: https://github.com/featurehub-io/featurehub-ruby-sdk.git
-  revision: df989db03a0f472ad3060d02b49955173ab04919
-  glob: featurehub-sdk/*.gemspec
+PATH
+  remote: ../..
   specs:
-    featurehub-sdk (0.0.1)
+    featurehub-sdk (1.2.0)
       concurrent-ruby (~> 1.1.10)
       faraday (~> 2.3)
       ld-eventsource (~> 2.2.0)
@@ -13,22 +11,22 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.8.0)
-      public_suffix (>= 2.0.2, < 5.0)
+    addressable (2.8.1)
+      public_suffix (>= 2.0.2, < 6.0)
     concurrent-ruby (1.1.10)
     daemons (1.4.1)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
     eventmachine (1.2.7)
-    faraday (2.3.0)
-      faraday-net_http (~> 2.0)
+    faraday (2.6.0)
+      faraday-net_http (>= 2.0, < 3.1)
       ruby2_keywords (>= 0.0.4)
-    faraday-net_http (2.0.3)
+    faraday-net_http (3.0.1)
     ffi (1.15.5)
     ffi-compiler (1.0.1)
       ffi (>= 1.0.0)
       rake
-    http (5.0.4)
+    http (5.1.0)
       addressable (~> 2.8)
       http-cookie (~> 1.0)
       http-form_data (~> 2.2)
@@ -45,7 +43,7 @@ GEM
     murmurhash3 (0.1.6)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
-    public_suffix (4.0.7)
+    public_suffix (5.0.0)
     rack (2.2.3.1)
     rack-protection (2.2.0)
       rack
