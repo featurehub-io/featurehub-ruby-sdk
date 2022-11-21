@@ -114,6 +114,18 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
     expect(f.set?).to eq(true)
   end
 
+  it "handles unset features properly" do
+    data = JSON.parse('{"id": 123, "key": "blah", "version": 1, "type": "JSON", "l": true}')
+    f = FeatureHub::Sdk::FeatureState.new(:blah, repo, data)
+    expect(f.string).to eq(nil)
+    expect(f.raw_json).to eq(nil)
+    expect(f.number).to eq(nil)
+    expect(f.boolean).to eq(nil)
+    expect(f.flag).to eq(nil)
+    expect(f.enabled?).to eq(false)
+    expect(f.set?).to eq(false)
+  end
+
   describe "it has a known set of data and feature" do
     let(:data) { JSON.parse('{"id": 123, "key": "blah", "version": 1, "value": "ruby", "type": "STRING", "l": true}') }
     let(:f) { FeatureHub::Sdk::FeatureState.new(:blah, repo, data) }
