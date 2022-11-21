@@ -85,7 +85,7 @@ module FeatureHub
       end
 
       def set?
-        value != nil?
+        !value.nil?
       end
 
       def top_feature_state

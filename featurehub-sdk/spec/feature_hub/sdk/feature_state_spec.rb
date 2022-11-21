@@ -59,15 +59,15 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
 
   it "should allow me to create an empty feature and then update it with locked data" do
     f = FeatureHub::Sdk::FeatureState.new(:blah, repo)
-    data = JSON.parse('{"id": 123, "key": "blah", "version": 1, "value": true, "type": "BOOLEAN", "l": true}')
+    data = JSON.parse('{"id": 123, "key": "blah", "version": 1, "value": false, "type": "BOOLEAN", "l": true}')
     expect(f.exists?).to eq(false)
     f.update_feature_state(data)
     expect(f.exists?).to eq(true)
-    expect(f.flag).to eq(true)
-    expect(f.boolean).to eq(true)
-    expect(f.value).to eq(true)
+    expect(f.flag).to eq(false)
+    expect(f.boolean).to eq(false)
+    expect(f.value).to eq(false)
     expect(f.version).to eq(1)
-    expect(f.enabled?).to eq(true)
+    expect(f.enabled?).to eq(false)
     expect(f.set?).to eq(true)
     expect(f.locked?).to eq(true)
     expect(f.id).to eq(123)
@@ -112,6 +112,18 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
     expect(f.flag).to eq(nil)
     expect(f.enabled?).to eq(false)
     expect(f.set?).to eq(true)
+  end
+
+  it "handles unset features properly" do
+    data = JSON.parse('{"id": 123, "key": "blah", "version": 1, "type": "JSON", "l": true}')
+    f = FeatureHub::Sdk::FeatureState.new(:blah, repo, data)
+    expect(f.string).to eq(nil)
+    expect(f.raw_json).to eq(nil)
+    expect(f.number).to eq(nil)
+    expect(f.boolean).to eq(nil)
+    expect(f.flag).to eq(nil)
+    expect(f.enabled?).to eq(false)
+    expect(f.set?).to eq(false)
   end
 
   describe "it has a known set of data and feature" do
