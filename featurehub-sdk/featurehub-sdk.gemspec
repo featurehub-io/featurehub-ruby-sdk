@@ -35,7 +35,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "concurrent-ruby", "~> 1.1"
-  spec.add_dependency "faraday", "~> 2.3"
+  spec.add_dependency "faraday", "~> 1"
   spec.add_dependency "ld-eventsource", "~> 2.2.0"
   spec.add_dependency "murmurhash3", "~> 0.1.6"
   spec.add_dependency "sem_version", "~> 2.0.0"
