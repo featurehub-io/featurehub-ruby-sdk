@@ -58,7 +58,7 @@ module FeatureHub
       end
 
       def start_streaming
-        @logger.info("streaming from #{@url}")
+        @logger.debug("streaming from #{@url}")
         # we can get an error before returning the new() function and get a race condition on the close
         must_close = false
         @sse_client = SSE::Client.new(@url) do |client|
