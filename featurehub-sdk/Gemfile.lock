@@ -1,9 +1,9 @@
 PATH
   remote: .
   specs:
-    featurehub-sdk (1.2.0)
-      concurrent-ruby (~> 1.1.10)
-      faraday (~> 2.3)
+    featurehub-sdk (1.2.3)
+      concurrent-ruby (~> 1.1)
+      faraday (~> 2)
       ld-eventsource (~> 2.2.0)
       murmurhash3 (~> 0.1.6)
       sem_version (~> 2.0.0)
@@ -92,8 +92,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  concurrent-ruby (~> 1.1.10)
-  faraday (~> 2.3)
+  concurrent-ruby (~> 1.1)
+  faraday (~> 2)
   featurehub-sdk!
   ld-eventsource (~> 2.2.0)
   murmurhash3 (~> 0.1.6)

@@ -73,7 +73,7 @@ module FeatureHub
       def poll_with_interval
         return if @cancel || !@task.nil? || @stopped
 
-        @logger.info("starting polling for #{determine_request_url}")
+        @logger.debug("starting polling for #{determine_request_url}")
         @task = Concurrent::TimerTask.new(execution_interval: @interval, run_now: false) do
           get_updates
         end
