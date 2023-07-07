@@ -1,3 +1,12 @@
+## [1.2.2] - 2023-08-07
+
+- Changed the log levels for API logging to debug
+- Widened the possible transitive dependencies
+
+## [1.2.1] - 2022-11-21
+
+- Minor bug fixes (Chris Spalding)
+
 ## [1.2.0] - 2022-10-14
 
 - Fixing polling client for server eval
