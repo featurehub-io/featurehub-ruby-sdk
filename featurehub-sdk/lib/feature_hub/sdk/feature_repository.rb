@@ -50,7 +50,7 @@ module FeatureHub
       end
 
       def find_interceptor(feature_value)
-        @interceptors.find { |interceptor| interceptor.intercepted_value(feature_value) }
+        @interceptors.filter_map { |interceptor| interceptor.intercepted_value(feature_value) }.first
       end
 
       def ready?
