@@ -1,3 +1,7 @@
+## [1.2.3] - 2024-01-12
+
+- fix for Interceptor contributed by Lukas
+
 ## [1.2.2] - 2023-08-07
 
 - Changed the log levels for API logging to debug
