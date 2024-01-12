@@ -148,11 +148,39 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
     end
 
     describe "it has an interceptor" do
-      it "should be able to decide an intercepted value" do
-        f.feature_state["l"] = false  # override the lock to make testing less noisy
-        expect(repo).to receive(:find_interceptor).with(:blah).at_least(:once)
-                                                  .and_return(FeatureHub::Sdk::InterceptorValue.new("clot"))
-        expect(f.string).to eq("clot")
+      let(:remote_features) do
+        <<~JSON
+          [
+            {
+              "id": "34027abd-32f1-4988-9a78-2b81ad468cc6",
+              "key": "name",
+              "l": false,
+              "version": 2,
+              "type": "STRING",
+              "value": "Jack"
+            }
+          ]
+        JSON
+      end
+      let(:repo) { FeatureHub::Sdk::FeatureHubRepository.new }
+
+      context "when it is an environment interceptor" do
+        before do
+          ENV["FEATUREHUB_OVERRIDE_FEATURES"] = "true"
+          ENV["FEATUREHUB_name"] = "Sparrow"
+        end
+
+        it "should use value provided by environment variable" do
+          features = JSON.parse(remote_features)
+
+          expect(repo.ready?).to eq(false)
+          repo.notify("features", features)
+          expect(repo.ready?).to eq(true)
+
+          expect do
+            repo.register_interceptor(FeatureHub::Sdk::EnvironmentInterceptor.new)
+          end.to change { repo.feature("name").value }.from("Jack").to("Sparrow")
+        end
       end
     end
   end
