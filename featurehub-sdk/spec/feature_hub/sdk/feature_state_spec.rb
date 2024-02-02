@@ -34,6 +34,46 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
     END_JSON
   end
 
+  def raw_feature_property_feature
+    <<~END_JSON
+      {
+        "id": "227dc2e8-59e8-424a-b510-328ef52010f7",
+        "key": "SUBMIT_COLOR_BUTTON",
+        "l": true,
+        "version": 28,
+        "type": "STRING",
+        "value": "orange",
+        "fp": {"appName": "figs", "portfolio": "fruit", "category": "shoes"}
+      }
+    END_JSON
+  end
+
+  def raw_simple_feature
+    '{"id": 123, "key": "blah", "version": 1, "value": false, "type": "BOOLEAN", "l": true}'
+  end
+
+  it "a feature with no state has an empty properties" do
+    fs = FeatureHub::Sdk::FeatureState.new("key", repo)
+    expect(fs.feature_properties).to eq({})
+  end
+
+  it "a feature with no feature properties has an empty properties" do
+    state = JSON.parse(raw_simple_feature)
+    fs = FeatureHub::Sdk::FeatureState.new(state["key"].to_sym, repo)
+    fs.update_feature_state(state)
+    expect(fs.feature_properties).to eq({})
+  end
+
+  it "should correctly expose the feature properties when they are there" do
+    state = JSON.parse(raw_feature_property_feature)
+    fs = FeatureHub::Sdk::FeatureState.new(state["key"].to_sym, repo)
+    fs.update_feature_state(state)
+    props = fs.feature_properties
+    expect(props["appName"]).to eq("figs")
+    expect(props["portfolio"]).to eq("fruit")
+    expect(props["category"]).to eq("shoes")
+  end
+
   it "recognizes the correct state of a complex feature" do
     state = JSON.parse(raw_full_feature)
     fs = FeatureHub::Sdk::FeatureState.new(state["key"].to_sym, repo)
