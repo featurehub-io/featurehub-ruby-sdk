@@ -1,3 +1,8 @@
+## [1.3.0] - 2024-02-03
+
+- bump minimum Ruby version to 3.x as Ruby 2.7 is EOL
+- support feature properties 
+
 ## [1.2.3] - 2024-01-12
 
 - fix for Interceptor contributed by Lukas
