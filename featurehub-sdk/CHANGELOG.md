@@ -1,3 +1,8 @@
+## [1.3.0] - 2024-01-12
+
+- update gem dependencies
+- bump minimum ruby version to 3.2
+
 ## [1.2.3] - 2024-01-12
 
 - fix for Interceptor contributed by Lukas

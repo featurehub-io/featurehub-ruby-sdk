@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.2
 
 Style/StringLiterals:
   Enabled: true
@@ -35,7 +35,7 @@ Metrics/CyclomaticComplexity:
 Naming/FileName:
   Enabled: false
 
-Gemspec/DateAssignment: # new in 1.10
+Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
 Gemspec/DeprecatedAttributeAssignment: # new in 1.30
   Enabled: true
