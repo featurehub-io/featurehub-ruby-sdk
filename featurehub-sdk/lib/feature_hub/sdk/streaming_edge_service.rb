@@ -82,7 +82,7 @@ module FeatureHub
 
         return unless must_close
 
-        close  # try again
+        close # try again
       end
 
       def process_config(json_data)

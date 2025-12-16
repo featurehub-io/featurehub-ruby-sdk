@@ -73,11 +73,11 @@ module FeatureHub
         end
 
         def float_values
-          @values.filter { |x| !x.nil? }.map(&:to_f)
+          @values.compact.map(&:to_f)
         end
 
         def str_values
-          @values.filter { |x| !x.nil? }.map(&:to_s)
+          @values.compact.map(&:to_s)
         end
 
         def to_s
@@ -96,7 +96,7 @@ module FeatureHub
           @id = strategy["id"]
           @name = strategy["name"]
           @percentage = (strategy["percentage"] || "0").to_i
-          @percentage_attributes = (strategy["percentageAttributes"] || [])
+          @percentage_attributes = strategy["percentageAttributes"] || []
           @value = strategy["value"]
         end
 

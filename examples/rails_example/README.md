@@ -11,7 +11,7 @@ most folks.
 
 It's reasonably common to work with multiple versions of Ruby on a single machine, and you'll notice that this app has a
 `.ruby-version` file. If you have [rbenv](https://github.com/rbenv/rbenv) installed then you can run `rbenv install`
-from the base directory of this project to (1) install Ruby 3.1.2 on your machine and (2) use it as the ruby version for
+from the base directory of this project to (1) install Ruby 3.4.7 on your machine and (2) use it as the ruby version for
 this project.
 
 After making sure the correct version of Ruby is installed, you can install all the dependencies for the project by

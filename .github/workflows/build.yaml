@@ -13,9 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Ruby
-        uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
+        uses: ruby/setup-ruby@ed55d55e820a01da7d3e4863a8c51a61d73c3228
         with:
-          ruby-version: '3.0'
+          ruby-version: '3.2'
       - name: Install dependencies
         run: cd featurehub-sdk && bundle install
       - name: Rubocop

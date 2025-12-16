@@ -110,14 +110,12 @@ module FeatureHub
         FeatureHub::Sdk::StreamingEdgeService.new(repo, api_keys, edge_url, logger)
       end
 
-      # rubocop:disable Style/GuardClause
       def detect_client_evaluated(api_keys)
         @client_evaluated = !api_keys.detect { |k| k.include?("*") }.nil?
         if api_keys.detect { |k| (@client_evaluated && !k.include?("*")) || (!@client_evaluated && k.include?("*")) }
           raise "api keys must all be of one type"
         end
       end
-      # rubocop:enable Style/GuardClause
 
       def parse_edge_url(edge_url)
         if edge_url[-1] == "/"
