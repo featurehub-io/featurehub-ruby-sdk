@@ -7,15 +7,19 @@ on:
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        ruby:
+          - 3.2
+          - 3.3
+          - 3.4
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - name: Set up Ruby
-        uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
+        uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.0'
+          ruby-version: ${{ matrix.ruby }}
       - name: Install dependencies
         run: cd featurehub-sdk && bundle install
       - name: Rubocop
