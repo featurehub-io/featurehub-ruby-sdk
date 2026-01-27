@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "rack"
-require 'sinatra'
+require "sinatra"
 require "featurehub-sdk"
 require "json"
 
@@ -10,7 +10,7 @@ def configure_featurehub
   config = FeatureHub::Sdk::FeatureHubConfig.new(ENV.fetch("FEATUREHUB_EDGE_URL", "http://localhost:8903"),
                                                  [
                                                    ENV.fetch("FEATUREHUB_CLIENT_API_KEY",
-                                                             "41ef6f5e-a70b-4ace-b6b5-8a3f1d636101/2PTj12Bn50Xn7Wt4yS9heBXtok3KGFAE9KW0Cms3")
+                                                             "41ef6f5e-a70b-4ace-b6b5-8a3f1d636101/2PTj12Bn50Xn7Wt4yS9heBXtok3KGFAE9KW0Cms3") # rubocop:disable Layout/LineLength
                                                  ])
   config.use_polling_edge_service(1)
   config.init
@@ -31,14 +31,14 @@ class App < Sinatra::Base
   end
 
   before do
-    content_type 'application/json'
+    content_type "application/json"
   end
 
   # Routes
   # "resolve" a specific todo for this user
   put("/todo/:user/:id/resolve") do
-    user = params['user']
-    id = params['id'].to_s
+    user = params["user"]
+    id = params["id"].to_s
     todos = user_todos(user)
     todo = todos.detect { |todo| todo.id.to_s == id }
     todo&.resolved = true
@@ -46,9 +46,9 @@ class App < Sinatra::Base
   end
 
   # delete a specific todo for this user
-  delete('/todo/:user/:id') do
-    user = params['user']
-    id = params['id'].to_s
+  delete("/todo/:user/:id") do
+    user = params["user"]
+    id = params["id"].to_s
     todos = user_todos(user)
     new_todos = todos.filter { |todo| todo.id.to_s != id }
     settings.users[user] = new_todos
@@ -56,16 +56,16 @@ class App < Sinatra::Base
   end
 
   # delete a user
-  delete('/todo/:user') do
-    user = params['user']
+  delete("/todo/:user") do
+    user = params["user"]
     users = settings.users || {}
     users[user] = []
     status(204)
   end
 
   # add a user and the todo in the body
-  post('/todo/:user') do
-    user = params['user']
+  post("/todo/:user") do
+    user = params["user"]
     todos = user_todos(user)
     new_todo = JSON.parse(request.body.read)
     if new_todo["title"].nil?
@@ -77,11 +77,11 @@ class App < Sinatra::Base
   end
 
   # get all the todos for this user
-  get('/todo/:user') do
+  get("/todo/:user") do
     todo_list(params["user"])
   end
 
-  get( "/health/readiness") do
+  get("/health/readiness") do
     if config.repository.ready?
       "ok"
     else
@@ -112,26 +112,20 @@ class App < Sinatra::Base
   def process_title(ctx, title)
     new_title = title
 
-    if ctx.set?("FEATURE_STRING") && title == "buy"
-      new_title = "#{title} #{ctx.string('FEATURE_STRING')}"
-    end
+    new_title = "#{title} #{ctx.string("FEATURE_STRING")}" if ctx.set?("FEATURE_STRING") && title == "buy"
 
-    if ctx.set?("FEATURE_NUMBER") && title == "pay"
-      new_title = "#{title} #{ctx.number('FEATURE_NUMBER')}"
-    end
+    new_title = "#{title} #{ctx.number("FEATURE_NUMBER")}" if ctx.set?("FEATURE_NUMBER") && title == "pay"
 
     if ctx.set?("FEATURE_JSON") && title == "find"
       json = ctx.json("FEATURE_JSON")
-      if json.nil?
-        new_title = "#{title}"
-      else
-        new_title = "#{title} #{json['foo']}"
-      end
+      new_title = if json.nil?
+                    title.to_s
+                  else
+                    "#{title} #{json["foo"]}"
+                  end
     end
 
-    if ctx.enabled?("FEATURE_TITLE_TO_UPPERCASE")
-      new_title = new_title.upcase
-    end
+    new_title = new_title.upcase if ctx.enabled?("FEATURE_TITLE_TO_UPPERCASE")
 
     puts("features via repository: #{settings.fh_config.repository.features}")
     puts("features via edge service: #{settings.fh_config.get_or_create_edge_service.repository}")
