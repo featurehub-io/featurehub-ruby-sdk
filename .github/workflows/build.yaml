@@ -21,9 +21,9 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
       - name: Install dependencies
-        run: cd featurehub-sdk && bundle install
+        run: bundle install
       - name: Rubocop
-        run: cd featurehub-sdk && bundle exec rubocop
+        run: bundle exec rubocop
       - name: Run tests
-        run: cd featurehub-sdk && bundle exec rspec
+        run: bundle exec rspec
 

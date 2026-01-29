@@ -101,6 +101,8 @@ Style/ArgumentsForwarding: # new in 1.1
   Enabled: true
 Style/CollectionCompact: # new in 1.2
   Enabled: true
+Style/Documentation:
+  Enabled: false
 Style/DocumentDynamicEvalDefinition: # new in 1.1
   Enabled: true
 Style/EndlessMethod: # new in 1.8

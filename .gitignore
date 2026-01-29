@@ -1,1 +1,15 @@
 /.idea
+
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+/.idea/
+./bin/
+
+# rspec failure tracking
+.rspec_status
