@@ -15,7 +15,8 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
   end
 
   it "returns false when the yaml file does not exist" do
-    allow(ENV).to receive(:fetch).with("FEATUREHUB_LOCAL_YAML", "featurehub-features.yaml").and_return("/nonexistent.yaml")
+    allow(ENV).to receive(:fetch).with("FEATUREHUB_LOCAL_YAML", "featurehub-features.yaml")
+                                 .and_return("/nonexistent.yaml")
     interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new
     expect(interceptor.intercepted_value(:MY_FLAG, nil, nil)).to eq([false, nil])
   end
@@ -163,9 +164,13 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
   end
 
   describe "with feature_state type checking" do
+    def fs(type)
+      { "type" => type }
+    end
+
     it "matches when the yaml boolean type matches the feature state type" do
       with_yaml_file("flagValues:\n  MY_FLAG: true\n") do |interceptor|
-        matched, value = interceptor.intercepted_value(:MY_FLAG, nil, { "type" => FeatureHub::Sdk::FeatureValueType::BOOLEAN })
+        matched, value = interceptor.intercepted_value(:MY_FLAG, nil, fs(FeatureHub::Sdk::FeatureValueType::BOOLEAN))
         expect(matched).to eq(true)
         expect(value).to eq(true)
       end
@@ -173,13 +178,14 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
 
     it "returns false when the yaml value type does not match the feature state type" do
       with_yaml_file("flagValues:\n  MY_FLAG: true\n") do |interceptor|
-        expect(interceptor.intercepted_value(:MY_FLAG, nil, { "type" => FeatureHub::Sdk::FeatureValueType::STRING })).to eq([false, nil])
+        result = interceptor.intercepted_value(:MY_FLAG, nil, fs(FeatureHub::Sdk::FeatureValueType::STRING))
+        expect(result).to eq([false, nil])
       end
     end
 
     it "matches a number value against NUMBER type" do
       with_yaml_file("flagValues:\n  MY_NUM: 7\n") do |interceptor|
-        matched, value = interceptor.intercepted_value(:MY_NUM, nil, { "type" => FeatureHub::Sdk::FeatureValueType::NUMBER })
+        matched, value = interceptor.intercepted_value(:MY_NUM, nil, fs(FeatureHub::Sdk::FeatureValueType::NUMBER))
         expect(matched).to eq(true)
         expect(value).to eq(7.0)
       end
@@ -187,13 +193,14 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
 
     it "returns false when a number value is checked against BOOLEAN type" do
       with_yaml_file("flagValues:\n  MY_NUM: 7\n") do |interceptor|
-        expect(interceptor.intercepted_value(:MY_NUM, nil, { "type" => FeatureHub::Sdk::FeatureValueType::BOOLEAN })).to eq([false, nil])
+        result = interceptor.intercepted_value(:MY_NUM, nil, fs(FeatureHub::Sdk::FeatureValueType::BOOLEAN))
+        expect(result).to eq([false, nil])
       end
     end
 
     it "matches a complex value against JSON type" do
       with_yaml_file("flagValues:\n  MY_JSON:\n    a: 1\n") do |interceptor|
-        matched, value = interceptor.intercepted_value(:MY_JSON, nil, { "type" => FeatureHub::Sdk::FeatureValueType::JSON })
+        matched, value = interceptor.intercepted_value(:MY_JSON, nil, fs(FeatureHub::Sdk::FeatureValueType::JSON))
         expect(matched).to eq(true)
         expect(value).to be_a(Hash)
         expect(value["a"]).to eq(1)

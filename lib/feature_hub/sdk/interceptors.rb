@@ -25,7 +25,7 @@ module FeatureHub
     # Holds the pattern for a value based interceptor, which could come from a file, or whatever
     # they are not typed
     class ValueInterceptor
-      def intercepted_value(feature_key, repository, feature_state)
+      def intercepted_value(_feature_key, _repository, _feature_state)
         [false, nil]
       end
 
