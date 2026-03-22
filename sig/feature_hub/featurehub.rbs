@@ -87,7 +87,7 @@ module FeatureHub
     end
 
     class LocalYamlValueInterceptor < ValueInterceptor
-      def initialize: () -> void
+      def initialize: (?filename: String?) -> void
     end
 
     class EnvironmentInterceptor < ValueInterceptor

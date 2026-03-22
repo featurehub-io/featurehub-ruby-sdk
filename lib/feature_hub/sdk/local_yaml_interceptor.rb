@@ -12,9 +12,9 @@ module FeatureHub
     #     MY_FLAG: true
     #     MY_STRING: "hello"
     class LocalYamlValueInterceptor < ValueInterceptor
-      def initialize
+      def initialize(filename = nil)
         super()
-        yaml_file = ENV.fetch("FEATUREHUB_LOCAL_YAML", "featurehub-features.yaml")
+        yaml_file = filename || ENV.fetch("FEATUREHUB_LOCAL_YAML", "featurehub-features.yaml")
         @flag_values = load_flag_values(yaml_file)
       end
 

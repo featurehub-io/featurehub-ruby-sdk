@@ -78,6 +78,18 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
     end
   end
 
+  it "accepts an explicit filename" do
+    file = Tempfile.new(["explicit", ".yaml"])
+    file.write("flagValues:\n  MY_FLAG: true\n")
+    file.close
+    interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(file.path)
+    matched, value = interceptor.intercepted_value(:MY_FLAG, nil, nil)
+    expect(matched).to eq(true)
+    expect(value).to eq(true)
+  ensure
+    file.unlink
+  end
+
   it "reads the yaml file path from FEATUREHUB_LOCAL_YAML env var" do
     with_yaml_file("flagValues:\n  FLAG: true\n") do |interceptor|
       matched, value = interceptor.intercepted_value(:FLAG, nil, nil)
