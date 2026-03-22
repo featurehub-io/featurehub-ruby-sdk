@@ -90,6 +90,11 @@ module FeatureHub
       end
 
       def close
+        if @repository != nil
+          @repository.close
+          @repository = nil
+        end
+
         return if @edge_service.nil?
 
         @edge_service.close
