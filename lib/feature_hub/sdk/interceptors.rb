@@ -12,9 +12,9 @@ module FeatureHub
         return @val if expected_type.nil? || @val.nil?
 
         case expected_type
-        when "BOOLEAN"
+        when FeatureValueType::BOOLEAN
           @val.to_s.downcase.strip == "true"
-        when "NUMBER"
+        when FeatureValueType::NUMBER
           @val.to_s.to_f
         else
           @val.to_s

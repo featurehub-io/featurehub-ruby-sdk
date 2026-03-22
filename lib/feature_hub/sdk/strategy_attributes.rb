@@ -213,6 +213,13 @@ module FeatureHub
       Embedded = "embedded"
     end
 
+    module FeatureValueType
+      BOOLEAN = "BOOLEAN"
+      JSON = "JSON"
+      STRING = "STRING"
+      NUMBER = "NUMBER"
+    end
+
     module StrategyAttributePlatformName
       Linux = "linux"
       Windows = "windows"

@@ -44,7 +44,7 @@ context.feature("MY_FLAG").boolean
 
 - **FeatureHubRepository** ([feature_repository.rb](lib/feature_hub/sdk/feature_repository.rb)): Stores features as a hash (symbol keys → `FeatureStateHolder`). Notifies listeners on changes (`:features`, `:feature`, `:delete_feature`, `:failed`). Checks interceptors before applying strategies. Tracks readiness via `@ready`.
 
-- **FeatureStateHolder** ([feature_state.rb](lib/feature_hub/sdk/feature_state.rb)): Wraps feature JSON (`key`, `id`, `type`, `value`, `version`, `l` (locked), `strategies`). Provides typed accessors: `.flag`, `.string`, `.number`, `.raw_json`, `.boolean`. Supports `with_context(ctx)` for strategy evaluation.
+- **FeatureStateHolder** ([feature_state_holder.rb](lib/feature_hub/sdk/feature_state_holder.rb)): Wraps feature JSON (`key`, `id`, `type`, `value`, `version`, `l` (locked), `strategies`). Provides typed accessors: `.flag`, `.string`, `.number`, `.raw_json`, `.boolean`. Supports `with_context(ctx)` for strategy evaluation.
 
 - **Context classes** ([context.rb](lib/feature_hub/sdk/context.rb)): Fluent builder pattern — `context.user_key("x").platform("ios").country("gb").build()`. Attributes stored as `symbol → [array]`. Two subclasses: `ClientEvalFeatureContext` (local strategy eval) and `ServerEvalFeatureContext` (server-side eval, sends `x-featurehub` header).
 

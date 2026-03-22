@@ -7,6 +7,13 @@ module FeatureHub
     # See the writing guide of rbs: https://github.com/ruby/rbs#guides
     #
 
+    module FeatureValueType
+      BOOLEAN: String
+      JSON: String
+      STRING: String
+      NUMBER: String
+    end
+
     class FeatureStateHolder
       attr_reader key: Symbol
 

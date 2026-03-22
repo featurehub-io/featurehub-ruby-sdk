@@ -61,19 +61,19 @@ module FeatureHub
       end
 
       def string
-        get_value("STRING")
+        get_value(FeatureValueType::STRING)
       end
 
       def number
-        get_value("NUMBER")
+        get_value(FeatureValueType::NUMBER)
       end
 
       def raw_json
-        get_value("JSON")
+        get_value(FeatureValueType::JSON)
       end
 
       def boolean
-        get_value("BOOLEAN")
+        get_value(FeatureValueType::BOOLEAN)
       end
 
       def flag
