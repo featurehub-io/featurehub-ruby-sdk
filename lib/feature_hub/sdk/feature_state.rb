@@ -3,7 +3,7 @@
 module FeatureHub
   module Sdk
     # represents internal state of a feature
-    class FeatureState
+    class FeatureStateHolder
       attr_reader :key, :internal_feature_state, :encoded_strategies
 
       def initialize(key, repo, feature_state = nil, parent_state = nil, ctx = nil)
@@ -40,7 +40,7 @@ module FeatureHub
       end
 
       def with_context(ctx)
-        FeatureState.new(@key, @repo, nil, self, ctx)
+        FeatureStateHolder.new(@key, @repo, nil, self, ctx)
       end
 
       def update_feature_state(feature_state)

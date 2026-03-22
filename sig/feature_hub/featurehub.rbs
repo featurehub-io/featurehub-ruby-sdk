@@ -2,32 +2,34 @@ module FeatureHub
   module Sdk
     VERSION: String
 
+    type FeatureState = Hash[untyped, untyped]
+
     # See the writing guide of rbs: https://github.com/ruby/rbs#guides
     #
 
-    class FeatureState
+    class FeatureStateHolder
       attr_reader key: Symbol
 
       def initialize: (key: String, repo: InternalFeatureRepository,
-          feature_state: Hash[untyped, untyped]?, parent_state: FeatureState?, ctx: ClientContext?) -> void
+          feature_state: FeatureState?, parent_state: FeatureStateHolder?, ctx: ClientContext?) -> void
 
       def locked?: -> bool
 
-      def exists?: (top_feature: FeatureState?) -> bool
+      def exists?: (top_feature: FeatureStateHolder?) -> bool
 
       def id: -> String?
 
       def feature_type: -> String?
 
-      def with_context: (ctx: ClientContext) -> FeatureState
+      def with_context: (ctx: ClientContext) -> FeatureStateHolder
 
-      def update_feature_state: (feature_state: Hash[untyped, untyped]) -> void
+      def update_feature_state: (feature_state: FeatureState) -> void
 
       # this is the feature state of the top level, it always walks up
-      def feature_state: () -> Hash[untyped, untyped]
+      def feature_state: () -> FeatureState
 
       # this is strictly the internal feature state, further down from the top level it will be nil
-      def internal_feature_state: () -> Hash[untyped, untyped]
+      def internal_feature_state: () -> FeatureState
 
       def value: () -> [bool? | String? | Float?]
 
@@ -49,11 +51,11 @@ module FeatureHub
 
       private
 
-      def top_feature_state: -> FeatureState
+      def top_feature_state: -> FeatureStateHolder
 
-      def _feature_state: -> Hash[untyped, untyped]
+      def _feature_state: -> FeatureState
 
-      def _set_feature_state: (feature_state: Hash[untyped, untyped]) -> void
+      def _set_feature_state: (feature_state: FeatureState) -> void
 
       def get_value: (feature_type: String?) -> [bool? | String? | Float?]
     end
@@ -93,7 +95,7 @@ module FeatureHub
     end
 
     class InternalFeatureRepository
-      def feature: (key: String) -> FeatureState?
+      def feature: (key: String) -> FeatureStateHolder?
 
       def find_interceptor: (feature_value: String) -> InterceptorValue?
 
@@ -103,20 +105,20 @@ module FeatureHub
 
       def apply: (strategies: Array[RolloutStrategy], key: String, feature_id: String, context: ClientContext) -> Applied
 
-      def notify: (status: String, data: Hash[untyped, untyped]) -> void
+      def notify: (status: String, data: FeatureState) -> void
     end
 
     class FeatureHubRepository < InternalFeatureRepository
-      @features: Hash[String, FeatureState]
+      @features: Hash[String, FeatureStateHolder]
       @ready: bool
 
       def initialize: (apply_features: nil | ApplyFeatures) -> void
 
       def apply: (strategies: Array[RolloutStrategy], key: String, feature_id: String, context: ClientContext) -> Applied
 
-      def notify: (status: String, data: Hash[untyped, untyped]) -> void
+      def notify: (status: String, data: FeatureState) -> void
 
-      def feature: (key: String) -> FeatureState
+      def feature: (key: String) -> FeatureStateHolder
 
       def register_interceptor: (interceptor: ValueInterceptor) -> void
 
@@ -126,7 +128,7 @@ module FeatureHub
 
       def not_ready!: -> void
 
-      def extract_feature_state: -> Array[Hash[untyped, untyped]]
+      def extract_feature_state: -> Array[FeatureState]
     end
 
     class ClientContext
@@ -156,7 +158,7 @@ module FeatureHub
 
       def enabled: (key: String) -> bool?
 
-      def feature: (key: String) -> FeatureState
+      def feature: (key: String) -> FeatureStateHolder
 
       def set?: (key: String) -> bool?
 
@@ -164,7 +166,7 @@ module FeatureHub
 
       def string: (key: String) -> String?
 
-      def json: (key: String) -> Hash[untyped, untyped]?
+      def json: (key: String) -> FeatureState?
 
       def raw_json: (key: String) -> String?
 

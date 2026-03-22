@@ -16,7 +16,7 @@ RSpec.describe FeatureHub::Sdk::ClientEvalFeatureContext do
     end
 
     it "should ask for a feature with the current context when asking for a feature" do
-      feature = instance_double(FeatureHub::Sdk::FeatureState)
+      feature = instance_double(FeatureHub::Sdk::FeatureStateHolder)
       expect(repo).to receive(:feature).with("fred").and_return(feature)
       expect(feature).to receive(:with_context).with(ctx).and_return(feature)
       ctx.feature("fred")
