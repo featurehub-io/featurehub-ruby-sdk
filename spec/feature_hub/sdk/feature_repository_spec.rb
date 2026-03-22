@@ -96,9 +96,9 @@ RSpec.describe FeatureHub::Sdk::FeatureHubRepository do
     end
 
     it "should receive a feature creation and correctly evaluate it" do
-      fs = instance_double(FeatureHub::Sdk::FeatureState)
+      fs = instance_double(FeatureHub::Sdk::FeatureStateHolder)
       data = JSON.parse('{"key": "blah"}')
-      expect(FeatureHub::Sdk::FeatureState).to receive(:new).with(:blah, repo, data).and_return(fs)
+      expect(FeatureHub::Sdk::FeatureStateHolder).to receive(:new).with(:blah, repo, data).and_return(fs)
       repo.notify("feature", data)
       expect(repo.feature("blah")).to eq(fs)
     end
@@ -114,23 +114,23 @@ RSpec.describe FeatureHub::Sdk::FeatureHubRepository do
     it "should not try and delete a feature we never created" do
       data = JSON.parse('{"key": "blah"}')
       repo.notify("delete_feature", data)
-      expect(FeatureHub::Sdk::FeatureState).to_not receive(:new)
+      expect(FeatureHub::Sdk::FeatureStateHolder).to_not receive(:new)
     end
 
     it "should try and delete a feature we did create" do
-      fs = instance_double(FeatureHub::Sdk::FeatureState)
+      fs = instance_double(FeatureHub::Sdk::FeatureStateHolder)
       data = JSON.parse('{"key": "blah"}')
-      expect(FeatureHub::Sdk::FeatureState).to receive(:new).with(:blah, repo, data).and_return(fs)
+      expect(FeatureHub::Sdk::FeatureStateHolder).to receive(:new).with(:blah, repo, data).and_return(fs)
       expect(fs).to receive(:update_feature_state).with(nil)
       repo.notify("feature", data)
       repo.notify("delete_feature", data)
     end
 
     it "should allow us to update an existing feature if the version changed" do
-      fs = instance_double(FeatureHub::Sdk::FeatureState)
+      fs = instance_double(FeatureHub::Sdk::FeatureStateHolder)
       data = JSON.parse('{"key": "blah", "version": 1}')
       data2 = JSON.parse('{"key": "blah", "version": 2}')
-      expect(FeatureHub::Sdk::FeatureState).to receive(:new).with(:blah, repo, data).and_return(fs)
+      expect(FeatureHub::Sdk::FeatureStateHolder).to receive(:new).with(:blah, repo, data).and_return(fs)
       expect(fs).to receive(:version).and_return(1).exactly(2).times
       expect(fs).to receive(:update_feature_state).with(data2)
       repo.notify("feature", data)
@@ -138,10 +138,10 @@ RSpec.describe FeatureHub::Sdk::FeatureHubRepository do
     end
 
     it "should allow us to update the feature if the version is the same but the value changed" do
-      fs = instance_double(FeatureHub::Sdk::FeatureState)
+      fs = instance_double(FeatureHub::Sdk::FeatureStateHolder)
       data = JSON.parse('{"key": "blah", "version": 1, "value": true}')
       data2 = JSON.parse('{"key": "blah", "version": 1, "value": false}')
-      expect(FeatureHub::Sdk::FeatureState).to receive(:new).with(:blah, repo, data).and_return(fs)
+      expect(FeatureHub::Sdk::FeatureStateHolder).to receive(:new).with(:blah, repo, data).and_return(fs)
       expect(fs).to receive(:version).and_return(1).exactly(2).times
       expect(fs).to receive(:value).and_return(true)
       expect(fs).to receive(:update_feature_state).with(data2)
@@ -150,9 +150,9 @@ RSpec.describe FeatureHub::Sdk::FeatureHubRepository do
     end
 
     it "should reject the update if the version hasn't changed" do
-      fs = instance_double(FeatureHub::Sdk::FeatureState)
+      fs = instance_double(FeatureHub::Sdk::FeatureStateHolder)
       data = JSON.parse('{"key": "blah", "version": 1, "value": true}')
-      expect(FeatureHub::Sdk::FeatureState).to receive(:new).with(:blah, repo, data).and_return(fs)
+      expect(FeatureHub::Sdk::FeatureStateHolder).to receive(:new).with(:blah, repo, data).and_return(fs)
       expect(fs).to receive(:version).and_return(1).exactly(2).times
       expect(fs).to receive(:value).and_return(true)
       repo.notify("feature", data)
@@ -160,17 +160,17 @@ RSpec.describe FeatureHub::Sdk::FeatureHubRepository do
     end
 
     it "should reject the update if the new version is less than the existing one" do
-      fs = instance_double(FeatureHub::Sdk::FeatureState)
+      fs = instance_double(FeatureHub::Sdk::FeatureStateHolder)
       data = JSON.parse('{"key": "blah", "version": 1, "value": true}')
-      expect(FeatureHub::Sdk::FeatureState).to receive(:new).with(:blah, repo, data).and_return(fs)
+      expect(FeatureHub::Sdk::FeatureStateHolder).to receive(:new).with(:blah, repo, data).and_return(fs)
       expect(fs).to receive(:version).and_return(2).exactly(1).times
       repo.notify("feature", data)
       repo.notify("feature", data)
     end
 
     it "should allow me to get a feature and then update it with data" do
-      fs = instance_double(FeatureHub::Sdk::FeatureState)
-      expect(FeatureHub::Sdk::FeatureState).to receive(:new).with(:blah, repo).and_return(fs)
+      fs = instance_double(FeatureHub::Sdk::FeatureStateHolder)
+      expect(FeatureHub::Sdk::FeatureStateHolder).to receive(:new).with(:blah, repo).and_return(fs)
       expect(fs).to receive(:version).and_return(-1).exactly(2).times
       repo.feature("blah")
       data = JSON.parse('{"key": "blah", "version": 1, "value": true}')

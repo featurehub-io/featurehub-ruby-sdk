@@ -5,8 +5,8 @@ RSpec.describe FeatureHub::Sdk::EnvironmentInterceptor do
     expect(ENV).to receive(:fetch).with("FEATUREHUB_OVERRIDE_FEATURES", "false").and_return("true")
     expect(ENV).to receive(:fetch).with("FEATUREHUB_blah", nil).and_return("ruby")
 
-    val = FeatureHub::Sdk::EnvironmentInterceptor.new.intercepted_value(:blah)
-    expect(val).to_not eq(nil)
-    expect(val.cast("STRING")).to eq("ruby")
+    matched, val = FeatureHub::Sdk::EnvironmentInterceptor.new.intercepted_value(:blah, nil, nil)
+    expect(matched).to eq(true)
+    expect(val).to eq("ruby")
   end
 end

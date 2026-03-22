@@ -43,14 +43,14 @@ RSpec.describe FeatureHub::Sdk::ClientContext do
   end
 
   it "should support passthrough" do
-    feature = instance_double(FeatureHub::Sdk::FeatureState)
+    feature = instance_double(FeatureHub::Sdk::FeatureStateHolder)
     expect(@repo).to receive(:feature).with("str_feature").and_return(feature)
     expect(@repo.feature("str_feature")).to eq(feature)
   end
 
   describe "features support passthrough" do
     before do
-      @feature = instance_double(FeatureHub::Sdk::FeatureState)
+      @feature = instance_double(FeatureHub::Sdk::FeatureStateHolder)
       expect(@repo).to receive(:feature).with("feature").and_return(@feature)
     end
 

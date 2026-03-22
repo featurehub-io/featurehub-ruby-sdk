@@ -49,8 +49,16 @@ module FeatureHub
         @interceptors.push(interceptor)
       end
 
-      def find_interceptor(feature_value)
-        @interceptors.filter_map { |interceptor| interceptor.intercepted_value(feature_value) }.first
+      def find_interceptor(feature_key, feature_state = nil)
+        @interceptors.each do |interceptor|
+          matched, value = interceptor.intercepted_value(feature_key, self, feature_state)
+          return [true, value] if matched
+        end
+        [false, nil]
+      end
+
+      def close
+        @interceptors.each(&:close)
       end
 
       def ready?
@@ -78,7 +86,7 @@ module FeatureHub
       end
 
       def make_feature_holder(key)
-        fs = FeatureHub::Sdk::FeatureState.new(key, self)
+        fs = FeatureHub::Sdk::FeatureStateHolder.new(key, self)
         @features[key.to_sym] = fs
         fs
       end
@@ -95,7 +103,7 @@ module FeatureHub
         key = feature_state["key"].to_sym
         holder = @features[key]
         if !holder
-          @features[key] = FeatureHub::Sdk::FeatureState.new(key, self, feature_state)
+          @features[key] = FeatureHub::Sdk::FeatureStateHolder.new(key, self, feature_state)
           return
         elsif feature_state["version"] < holder.version
           return

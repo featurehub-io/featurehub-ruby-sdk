@@ -3,7 +3,7 @@
 module FeatureHub
   module Sdk
     # represents internal state of a feature
-    class FeatureState
+    class FeatureStateHolder
       attr_reader :key, :internal_feature_state, :encoded_strategies
 
       def initialize(key, repo, feature_state = nil, parent_state = nil, ctx = nil)
@@ -40,7 +40,7 @@ module FeatureHub
       end
 
       def with_context(ctx)
-        FeatureState.new(@key, @repo, nil, self, ctx)
+        FeatureStateHolder.new(@key, @repo, nil, self, ctx)
       end
 
       def update_feature_state(feature_state)
@@ -61,19 +61,19 @@ module FeatureHub
       end
 
       def string
-        get_value("STRING")
+        get_value(FeatureValueType::STRING)
       end
 
       def number
-        get_value("NUMBER")
+        get_value(FeatureValueType::NUMBER)
       end
 
       def raw_json
-        get_value("JSON")
+        get_value(FeatureValueType::JSON)
       end
 
       def boolean
-        get_value("BOOLEAN")
+        get_value(FeatureValueType::BOOLEAN)
       end
 
       def flag
@@ -108,9 +108,9 @@ module FeatureHub
 
       def get_value(feature_type)
         unless locked?
-          intercept = @repo.find_interceptor(@key)
+          matched, intercept_value = @repo.find_interceptor(@key, top_feature_state)
 
-          return intercept.cast(feature_type) if intercept
+          return intercept_value if matched
         end
 
         fs = top_feature_state
@@ -124,7 +124,7 @@ module FeatureHub
         if @ctx
           matched = @repo.apply(fs.encoded_strategies, @key, fs.id, @ctx)
 
-          return FeatureHub::Sdk::InterceptorValue.new(matched.value).cast(feature_type) if matched.matched
+          return matched.value if matched.matched
         end
 
         state["value"]

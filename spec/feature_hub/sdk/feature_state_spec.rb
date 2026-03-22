@@ -2,7 +2,7 @@
 
 require "json"
 
-RSpec.describe FeatureHub::Sdk::FeatureState do
+RSpec.describe FeatureHub::Sdk::FeatureStateHolder do
   let(:repo) { instance_double(FeatureHub::Sdk::FeatureHubRepository) }
 
   def raw_full_feature
@@ -36,18 +36,18 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
 
   it "recognizes the correct state of a complex feature" do
     state = JSON.parse(raw_full_feature)
-    fs = FeatureHub::Sdk::FeatureState.new(state["key"].to_sym, repo)
+    fs = FeatureHub::Sdk::FeatureStateHolder.new(state["key"].to_sym, repo)
     fs.update_feature_state(state)
     expect(fs.version).to eq(28)
   end
 
   describe "with no interceptors" do
     before do
-      expect(repo).to receive(:find_interceptor).at_least(:once).and_return(nil)
+      expect(repo).to receive(:find_interceptor).at_least(:once).and_return([false, nil])
     end
 
     it "should allow me to create an empty feature" do
-      f = FeatureHub::Sdk::FeatureState.new(:blah, repo)
+      f = FeatureHub::Sdk::FeatureStateHolder.new(:blah, repo)
 
       expect(f.locked?).to eq(false)
       expect(f.exists?).to eq(false)
@@ -58,7 +58,7 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
   end
 
   it "should allow me to create an empty feature and then update it with locked data" do
-    f = FeatureHub::Sdk::FeatureState.new(:blah, repo)
+    f = FeatureHub::Sdk::FeatureStateHolder.new(:blah, repo)
     data = JSON.parse('{"id": 123, "key": "blah", "version": 1, "value": false, "type": "BOOLEAN", "l": true}')
     expect(f.exists?).to eq(false)
     f.update_feature_state(data)
@@ -80,7 +80,7 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
 
   it "decodes numbers properly" do
     data = JSON.parse('{"id": 123, "key": "blah", "version": 1, "value": 725.43, "type": "NUMBER", "l": true}')
-    f = FeatureHub::Sdk::FeatureState.new(:blah, repo, data)
+    f = FeatureHub::Sdk::FeatureStateHolder.new(:blah, repo, data)
     expect(f.number).to eq(725.43)
     expect(f.boolean).to eq(nil)
     expect(f.flag).to eq(nil)
@@ -92,7 +92,7 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
 
   it "decodes strings properly" do
     data = JSON.parse('{"id": 123, "key": "blah", "version": 1, "value": "djelif", "type": "STRING", "l": true}')
-    f = FeatureHub::Sdk::FeatureState.new(:blah, repo, data)
+    f = FeatureHub::Sdk::FeatureStateHolder.new(:blah, repo, data)
     expect(f.string).to eq("djelif")
     expect(f.number).to eq(nil)
     expect(f.boolean).to eq(nil)
@@ -104,7 +104,7 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
 
   it "decodes json properly" do
     data = JSON.parse('{"id": 123, "key": "blah", "version": 1, "value": "{}", "type": "JSON", "l": true}')
-    f = FeatureHub::Sdk::FeatureState.new(:blah, repo, data)
+    f = FeatureHub::Sdk::FeatureStateHolder.new(:blah, repo, data)
     expect(f.string).to eq(nil)
     expect(f.raw_json).to eq("{}")
     expect(f.number).to eq(nil)
@@ -116,7 +116,7 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
 
   it "handles unset features properly" do
     data = JSON.parse('{"id": 123, "key": "blah", "version": 1, "type": "JSON", "l": true}')
-    f = FeatureHub::Sdk::FeatureState.new(:blah, repo, data)
+    f = FeatureHub::Sdk::FeatureStateHolder.new(:blah, repo, data)
     expect(f.string).to eq(nil)
     expect(f.raw_json).to eq(nil)
     expect(f.number).to eq(nil)
@@ -128,7 +128,7 @@ RSpec.describe FeatureHub::Sdk::FeatureState do
 
   describe "it has a known set of data and feature" do
     let(:data) { JSON.parse('{"id": 123, "key": "blah", "version": 1, "value": "ruby", "type": "STRING", "l": true}') }
-    let(:f) { FeatureHub::Sdk::FeatureState.new(:blah, repo, data) }
+    let(:f) { FeatureHub::Sdk::FeatureStateHolder.new(:blah, repo, data) }
 
     describe "feature has a context" do
       let(:ctx) { instance_double(FeatureHub::Sdk::ClientContext) }
