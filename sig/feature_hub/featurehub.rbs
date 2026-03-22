@@ -86,6 +86,10 @@ module FeatureHub
       def close: () -> void
     end
 
+    class LocalYamlValueInterceptor < ValueInterceptor
+      def initialize: () -> void
+    end
+
     class EnvironmentInterceptor < ValueInterceptor
     end
 
