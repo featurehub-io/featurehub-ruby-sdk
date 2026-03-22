@@ -43,7 +43,7 @@ RSpec.describe FeatureHub::Sdk::FeatureStateHolder do
 
   describe "with no interceptors" do
     before do
-      expect(repo).to receive(:find_interceptor).at_least(:once).and_return(nil)
+      expect(repo).to receive(:find_interceptor).at_least(:once).and_return([false, nil])
     end
 
     it "should allow me to create an empty feature" do

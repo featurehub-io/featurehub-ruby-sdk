@@ -74,7 +74,9 @@ module FeatureHub
     end
 
     class ValueInterceptor
-      def intercepted_value: (feature_key: Symbol) -> InterceptorValue?
+      def intercepted_value: (feature_key: Symbol, repository: FeatureHubRepository, feature_state: FeatureStateHolder?) -> [bool, (bool? | String? | Float?)]
+
+      def close: () -> void
     end
 
     class EnvironmentInterceptor < ValueInterceptor
@@ -97,7 +99,7 @@ module FeatureHub
     class InternalFeatureRepository
       def feature: (key: String) -> FeatureStateHolder?
 
-      def find_interceptor: (feature_value: String) -> InterceptorValue?
+      def find_interceptor: (feature_key: Symbol, feature_state: FeatureStateHolder?) -> [bool, (bool? | String? | Float?)]
 
       def ready?: -> bool
 
@@ -122,7 +124,9 @@ module FeatureHub
 
       def register_interceptor: (interceptor: ValueInterceptor) -> void
 
-      def find_interceptor: (feature_value: String) -> InterceptorValue?
+      def find_interceptor: (feature_key: Symbol, feature_state: FeatureStateHolder?) -> [bool, (bool? | String? | Float?)]
+
+      def close: () -> void
 
       def ready?: -> bool
 

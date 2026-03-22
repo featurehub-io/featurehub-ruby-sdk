@@ -108,9 +108,9 @@ module FeatureHub
 
       def get_value(feature_type)
         unless locked?
-          intercept = @repo.find_interceptor(@key)
+          matched, intercept_value = @repo.find_interceptor(@key, top_feature_state)
 
-          return intercept.cast(feature_type) if intercept
+          return intercept_value if matched
         end
 
         fs = top_feature_state
@@ -124,7 +124,7 @@ module FeatureHub
         if @ctx
           matched = @repo.apply(fs.encoded_strategies, @key, fs.id, @ctx)
 
-          return FeatureHub::Sdk::InterceptorValue.new(matched.value).cast(feature_type) if matched.matched
+          return matched.value if matched.matched
         end
 
         state["value"]

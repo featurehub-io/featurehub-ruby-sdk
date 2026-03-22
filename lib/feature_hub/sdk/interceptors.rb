@@ -25,7 +25,11 @@ module FeatureHub
     # Holds the pattern for a value based interceptor, which could come from a file, or whatever
     # they are not typed
     class ValueInterceptor
-      def intercepted_value(feature_key); end
+      def intercepted_value(feature_key, repository, feature_state)
+        [false, nil]
+      end
+
+      def close; end
     end
 
     # An example of a value interceptor that uses environment variables
@@ -35,13 +39,13 @@ module FeatureHub
         @enabled = ENV.fetch("FEATUREHUB_OVERRIDE_FEATURES", "false") == "true"
       end
 
-      def intercepted_value(feature_key)
+      def intercepted_value(feature_key, _repository, _feature_state)
         if @enabled
           found = ENV.fetch("FEATUREHUB_#{sanitize_feature_name(feature_key.to_s)}", nil)
-          return InterceptorValue.new(found) unless found.nil?
+          return [true, found] unless found.nil?
         end
 
-        nil
+        [false, nil]
       end
 
       private
