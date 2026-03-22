@@ -98,6 +98,70 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
     end
   end
 
+  describe "file watching" do
+    it "does not start a watcher by default" do
+      file = Tempfile.new(["featurehub-features", ".yaml"])
+      file.write("flagValues:\n  MY_FLAG: true\n")
+      file.close
+      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(file.path)
+      expect(interceptor.instance_variable_get(:@watcher)).to be_nil
+    ensure
+      file.unlink
+    end
+
+    it "reloads the file when it changes" do
+      file = Tempfile.new(["featurehub-features", ".yaml"])
+      file.write("flagValues:\n  MY_FLAG: true\n")
+      file.close
+
+      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(file.path, watch: true, watch_interval: 0.1)
+
+      expect(interceptor.intercepted_value(:MY_FLAG, nil, nil)).to eq([true, true])
+
+      # ensure mtime changes by sleeping at least 1 second (filesystem mtime resolution)
+      sleep(1.1)
+      File.write(file.path, "flagValues:\n  MY_FLAG: false\n")
+
+      sleep(0.3)
+      expect(interceptor.intercepted_value(:MY_FLAG, nil, nil)).to eq([true, false])
+    ensure
+      interceptor&.close
+      file.unlink
+    end
+
+    it "picks up new keys added to the file" do
+      file = Tempfile.new(["featurehub-features", ".yaml"])
+      file.write("flagValues:\n  MY_FLAG: true\n")
+      file.close
+
+      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(file.path, watch: true, watch_interval: 0.1)
+
+      expect(interceptor.intercepted_value(:NEW_KEY, nil, nil)).to eq([false, nil])
+
+      sleep(1.1)
+      File.write(file.path, "flagValues:\n  MY_FLAG: true\n  NEW_KEY: hello\n")
+
+      sleep(0.3)
+      expect(interceptor.intercepted_value(:NEW_KEY, nil, nil)).to eq([true, "hello"])
+    ensure
+      interceptor&.close
+      file.unlink
+    end
+
+    it "stops watching after close is called" do
+      file = Tempfile.new(["featurehub-features", ".yaml"])
+      file.write("flagValues:\n  MY_FLAG: true\n")
+      file.close
+
+      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(file.path, watch: true, watch_interval: 0.1)
+      interceptor.close
+
+      expect(interceptor.instance_variable_get(:@watcher)).to be_nil
+    ensure
+      file.unlink
+    end
+  end
+
   describe "with feature_state type checking" do
     it "matches when the yaml boolean type matches the feature state type" do
       with_yaml_file("flagValues:\n  MY_FLAG: true\n") do |interceptor|
