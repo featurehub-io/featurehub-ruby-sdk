@@ -21,4 +21,4 @@ gem "murmurhash3", "~> 0.1.7"
 
 gem "sem_version", "~> 2.0.0"
 
-gem "ld-eventsource", "~> 2.3.0"
+gem "ld-eventsource", "~> 2.5.1"
