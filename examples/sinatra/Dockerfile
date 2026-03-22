@@ -1,4 +1,4 @@
-FROM ruby:2.7-bullseye
+FROM ruby:3.3.10-slim
 
 MAINTAINER info@featurehub.io
 ENV BUNDLER_VERSION 2.3.15

@@ -17,7 +17,7 @@ RSpec.describe FeatureHub::Sdk::StreamingEdgeService do
     ok_event = SSE::StreamEvent.new("features", raw_json_data, "1", "etag-last-event-id")
     expect(sse).to receive(:on_event).and_yield(ok_event)
     expect(sse).to receive(:on_error)
-    expect(repo).to receive(:notify).with("features", json_data)
+    expect(repo).to receive(:notify).with("features", json_data, "streaming")
     streaming.poll
     expect(streaming.active).to eq(true)
   end
@@ -32,7 +32,7 @@ RSpec.describe FeatureHub::Sdk::StreamingEdgeService do
   end
 
   it "should stop polling on a 404" do
-    expect(repo).to receive(:notify).with("failure", nil)
+    expect(repo).to receive(:notify).with("failure", nil, "streaming")
     expect(sse).to receive(:on_event)
     expect(sse).to receive(:close)
     error = SSE::Errors::HTTPStatusError.new(404, "some message")

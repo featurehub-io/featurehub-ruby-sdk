@@ -2,7 +2,40 @@ module FeatureHub
   module Sdk
     VERSION: String
 
-    type FeatureState = Hash[untyped, untyped]
+    type RolloutStrategyAttributeConditional = "EQUALS" | "ENDS_WITH" | "STARTS_WITH" | "GREATER" |
+      "GREATER_EQUALS" | "LESS" | "LESS_EQUALS" | "NOT_EQUALS" | "INCLUDES" | "EXCLUDES" | "REGEX"
+
+    type RolloutStrategyFieldType = "STRING" | "SEMANTIC_VERSION" | "NUMBER" | "DATE" | "DATETIME" |
+      "BOOLEAN" | "IP_ADDRESS"
+
+    type FeatureRolloutStrategyAttributeHash = {
+      "id" => String?,
+      "conditional" => RolloutStrategyAttributeConditional,
+      "fieldName" => String,
+      "values" => Array[(bool | String | Float)?],
+      "type" => RolloutStrategyFieldType
+    }
+
+    type FeatureRolloutStrategyHash = {
+      "id" => String,
+      "percentage" => Integer?,
+      "percentageAttributes" => Array[String]?,
+      "attributes" => Array[FeatureRolloutStrategyAttributeHash]?,
+      "value" => (bool | String | Float)?
+    }
+
+    type FeatureState = {
+      "id" => String,
+      "key" => String,
+      "l" => bool?,
+      "version" => Integer,
+      "type" => "STRING" | "BOOLEAN" | "NUMBER" | "JSON",
+      "value" => (bool | String | Float)?,
+      "v" => String?,
+      "fp" => Hash[String, String]?,
+      "environmentId" => String?,
+      "strategies" => Array[FeatureRolloutStrategyHash]?
+    }
 
     # See the writing guide of rbs: https://github.com/ruby/rbs#guides
     #
@@ -118,7 +151,7 @@ module FeatureHub
 
       def apply: (strategies: Array[RolloutStrategy], key: String, feature_id: String, context: ClientContext) -> Applied
 
-      def notify: (status: String, data: FeatureState) -> void
+      def notify: (status: String, data: FeatureState, ?source: String) -> void
     end
 
     class FeatureHubRepository < InternalFeatureRepository
@@ -129,7 +162,7 @@ module FeatureHub
 
       def apply: (strategies: Array[RolloutStrategy], key: String, feature_id: String, context: ClientContext) -> Applied
 
-      def notify: (status: String, data: FeatureState) -> void
+      def notify: (status: String, data: FeatureState, ?source: String) -> void
 
       def feature: (key: String) -> FeatureStateHolder
 

@@ -22,7 +22,7 @@ module FeatureHub
         Applied.new(false, nil)
       end
 
-      def notify(status, data); end
+      def notify(status, data, source = "unknown"); end
     end
   end
 end

@@ -68,12 +68,12 @@ module FeatureHub
             if event.type == "config"
               process_config(json_data)
             else
-              @repository.notify(event.type, json_data)
+              @repository.notify(event.type, json_data, "streaming")
             end
           end
           client.on_error do |error|
             if error.is_a?(SSE::Errors::HTTPStatusError) && (error.status == 404)
-              @repository.notify("failure", nil)
+              @repository.notify("failure", nil, "streaming")
               close
               must_close = true
             end

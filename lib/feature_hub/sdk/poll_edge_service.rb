@@ -121,7 +121,7 @@ module FeatureHub
           stopped_task
           success(resp)
         when 404 # no such key
-          @repository.notify("failed", nil)
+          @repository.notify("failed", nil, "polling")
           cancel_task
           @logger.error("featurehub: key does not exist, stopping polling")
         when 503 # dacha busy
@@ -143,7 +143,7 @@ module FeatureHub
 
       def process_results(data)
         data.each do |environment|
-          @repository.notify("features", environment["features"]) if environment
+          @repository.notify("features", environment["features"], "polling") if environment
         end
       end
 

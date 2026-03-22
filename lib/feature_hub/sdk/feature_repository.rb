@@ -18,7 +18,7 @@ module FeatureHub
         @strategy_matcher.apply(strategies, key, feature_id, context)
       end
 
-      def notify(status, data)
+      def notify(status, data, source = "unknown")
         return unless status
 
         if status.to_sym == :failed
