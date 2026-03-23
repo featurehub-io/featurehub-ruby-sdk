@@ -38,17 +38,27 @@ RSpec.describe FeatureHub::Sdk::RedisSessionStore do
 
     it "uses the namespace from options" do
       empty_redis
-      opts = FeatureHub::Sdk::RedisSessionStoreOptions.new(namespace: 3)
       expect(Redis).to receive(:new).with(url: "redis://localhost:6379", db: 3).and_return(redis)
-      build(opts)
+      build({ namespace: 3 })
+    end
+
+    it "passes the password to Redis when provided" do
+      empty_redis
+      expect(Redis).to receive(:new).with(url: "redis://localhost:6379", db: 0, password: "secret").and_return(redis)
+      build({ password: "secret" })
+    end
+
+    it "does not include password in the Redis options when not provided" do
+      empty_redis
+      expect(Redis).to receive(:new).with(url: "redis://localhost:6379", db: 0).and_return(redis)
+      build
     end
 
     it "starts a timer with the configured timeout" do
       empty_redis
-      opts = FeatureHub::Sdk::RedisSessionStoreOptions.new(timeout: 120)
       expect(Concurrent::TimerTask).to receive(:new).with(execution_interval: 120, run_now: false).and_return(timer)
       expect(timer).to receive(:execute)
-      build(opts)
+      build({ timeout: 120 })
     end
 
     context "when Redis has no stored features" do
@@ -100,12 +110,24 @@ RSpec.describe FeatureHub::Sdk::RedisSessionStore do
     end
   end
 
-  describe "RedisSessionStoreOptions defaults" do
-    subject(:opts) { FeatureHub::Sdk::RedisSessionStoreOptions.new }
+  describe "default options" do
+    before { empty_redis }
 
-    it { expect(opts.namespace).to eq(0) }
-    it { expect(opts.prefix).to eq("featurehub") }
-    it { expect(opts.timeout).to eq(30 * 60) }
+    it "defaults namespace to 0" do
+      expect(Redis).to receive(:new).with(url: "redis://localhost:6379", db: 0).and_return(redis)
+      build
+    end
+
+    it "defaults prefix to featurehub" do
+      expect(redis).to receive(:smembers).with("featurehub_ids").and_return([])
+      build
+    end
+
+    it "defaults timeout to 30 seconds" do
+      expect(Concurrent::TimerTask).to receive(:new).with(execution_interval: 30, run_now: false).and_return(timer)
+      expect(timer).to receive(:execute)
+      build
+    end
   end
 
   describe "#process_updates" do
@@ -211,11 +233,10 @@ RSpec.describe FeatureHub::Sdk::RedisSessionStore do
 
   describe "custom prefix" do
     it "uses the configured prefix for all Redis keys" do
-      opts = FeatureHub::Sdk::RedisSessionStoreOptions.new(prefix: "myapp")
       allow(redis).to receive(:smembers).with("myapp_ids").and_return(["abc-123"])
       allow(redis).to receive(:get).with("myapp_abc-123").and_return(feature.to_json)
       expect(repo).to receive(:notify).with("features", [feature], "redis-store")
-      described_class.new("redis://localhost:6379", repo, opts)
+      described_class.new("redis://localhost:6379", repo, { prefix: "myapp" })
     end
   end
 end

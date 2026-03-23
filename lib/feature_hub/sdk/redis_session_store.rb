@@ -5,17 +5,6 @@ require "concurrent-ruby"
 
 module FeatureHub
   module Sdk
-    # Configuration options for RedisSessionStore.
-    class RedisSessionStoreOptions
-      attr_reader :namespace, :prefix, :timeout
-
-      def initialize(namespace: 0, prefix: "featurehub", timeout: 30 * 60)
-        @namespace = namespace
-        @prefix = prefix
-        @timeout = timeout
-      end
-    end
-
     # Persists feature values from a FeatureHubRepository in Redis so they survive
     # process restarts and are shared across multiple processes.
     #
@@ -28,22 +17,30 @@ module FeatureHub
     # RawUpdateFeatureListener and writes newer versions back to Redis. A periodic
     # timer re-reads all features from Redis so that updates published by other
     # processes are picked up automatically.
+    #
+    # Options (symbol keys):
+    #   :namespace  - Redis db index (default: 0)
+    #   :prefix     - key prefix for all Redis keys (default: "featurehub")
+    #   :timeout    - seconds between periodic reloads (default: 30)
     class RedisSessionStore < RawUpdateFeatureListener
       SOURCE = "redis-store"
 
-      def initialize(connection_string, repository, options = nil)
+      def initialize(connection_string, repository, opts = nil)
         super()
 
+        opts ||= {}
         @repository = repository
-        opts = options || RedisSessionStoreOptions.new
-        @prefix = opts.prefix
-        @timeout = opts.timeout
-        @namespace = opts.namespace
+        @prefix = opts[:prefix] || "featurehub"
+        @timeout = opts[:timeout] || 30
+        @namespace = opts[:namespace] || 0
+        @password = opts[:password]
         @task = nil
 
         return unless redis_available?
 
-        @redis = Redis.new(url: connection_string, db: @namespace)
+        redis_opts = { url: connection_string, db: @namespace }
+        redis_opts[:password] = @password if @password
+        @redis = Redis.new(**redis_opts)
         load_from_redis
         start_timer
       end
