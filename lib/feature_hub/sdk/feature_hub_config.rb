@@ -55,6 +55,10 @@ module FeatureHub
         @repository.feature(key, attrs)
       end
 
+      def value(key, default_value = nil, attrs = nil)
+        @repository.value(key, default_value, attrs)
+      end
+
       def register_interceptor(interceptor)
         @repository.register_interceptor(interceptor)
       end

@@ -66,6 +66,11 @@ module FeatureHub
         ClientContext.new(self, attrs).feature(key)
       end
 
+      def value(key, default_value = nil, attrs = nil)
+        f = feature(key, attrs)
+        f.present? ? f.value : default_value
+      end
+
       def register_interceptor(interceptor)
         @interceptors.push(interceptor)
       end

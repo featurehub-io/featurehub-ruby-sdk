@@ -60,6 +60,7 @@ module FeatureHub
       def locked?: -> bool
 
       def exists?: (top_feature: FeatureStateHolder?) -> bool
+      def present?: () -> bool
 
       def id: -> String?
 
@@ -170,6 +171,7 @@ module FeatureHub
 
     class InternalFeatureRepository
       def feature: (key: String, ?attrs: Hash[untyped, ContextAttributeValue]?) -> FeatureStateHolder?
+      def value: (key: String, ?default_value: (bool? | String? | Float?), ?attrs: Hash[untyped, ContextAttributeValue]?) -> (bool? | String? | Float?)
 
       def find_interceptor: (feature_key: Symbol, feature_state: FeatureStateHolder?) -> [bool, (bool? | String? | Float?)]
 
@@ -193,6 +195,7 @@ module FeatureHub
       def notify: (status: String, data: FeatureState, ?source: String) -> void
 
       def feature: (key: String, ?attrs: Hash[untyped, ContextAttributeValue]?) -> FeatureStateHolder
+      def value: (key: String, ?default_value: (bool? | String? | Float?), ?attrs: Hash[untyped, ContextAttributeValue]?) -> (bool? | String? | Float?)
 
       def register_interceptor: (interceptor: ValueInterceptor) -> void
 
@@ -313,6 +316,9 @@ module FeatureHub
       def register_interceptor: (interceptor: ValueInterceptor) -> void
 
       def register_raw_update_listener: (listener: RawUpdateFeatureListener) -> void
+
+      def feature: (key: String, ?attrs: Hash[untyped, ContextAttributeValue]?) -> FeatureStateHolder
+      def value: (key: String, ?default_value: (bool? | String? | Float?), ?attrs: Hash[untyped, ContextAttributeValue]?) -> (bool? | String? | Float?)
 
       def new_context: -> ClientContext
 

@@ -30,6 +30,10 @@ module FeatureHub
         !(fs.empty? || fs["l"].nil?)
       end
 
+      def present?
+        exists?
+      end
+
       def id
         exists? ? @internal_feature_state["id"] : nil
       end
