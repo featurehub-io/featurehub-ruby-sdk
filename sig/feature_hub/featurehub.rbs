@@ -138,6 +138,12 @@ module FeatureHub
       def config_changed: () -> void
     end
 
+    class LocalYamlStorage < RawUpdateFeatureListener
+      SOURCE: String
+
+      def initialize: (repository: FeatureHubRepository, ?filename: String?) -> void
+    end
+
     class PercentageCalculator
       def determine_client_percentage: (percentage_text: String, feature_id: String) -> int
     end
