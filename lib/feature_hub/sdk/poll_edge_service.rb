@@ -10,17 +10,12 @@ module FeatureHub
   module Sdk
     # uses a periodic polling mechanism to get updates
     class PollingEdgeService < EdgeService
-      attr_reader :repository, :api_keys, :edge_url, :interval, :stopped, :etag, :cancel, :sha_context
+      attr_reader :api_keys, :edge_url, :interval, :stopped, :etag, :cancel, :sha_context
 
       def initialize(repository, api_keys, edge_url, interval, logger = nil)
-        super(repository, api_keys, edge_url)
+        super(repository, api_keys, edge_url, logger || FeatureHub::Sdk.default_logger)
 
-        @repository = repository
-        @api_keys = api_keys
-        @edge_url = edge_url
         @interval = interval
-
-        @logger = logger || FeatureHub::Sdk.default_logger
 
         @task = nil
         @cancel = false

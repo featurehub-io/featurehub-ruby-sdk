@@ -264,7 +264,14 @@ module FeatureHub
     end
 
     class EdgeService
-      def initialize: (repository: InternalFeatureRepository, api_keys: Array[String], edge_url: String) -> void
+      @repository: InternalFeatureRepository?
+      @api_keys: Array[String]
+      @edge_url: String?
+      @logger: untyped
+
+      attr_reader repository: InternalFeatureRepository?
+
+      def initialize: (InternalFeatureRepository?, Array[String], String?, ?untyped) -> void
 
       def poll: -> void
 
@@ -302,6 +309,8 @@ module FeatureHub
       # def edge_service_provider:
       #
       def use_polling_edge_service: (interval: int?) -> void
+
+      def register_interceptor: (interceptor: ValueInterceptor) -> void
 
       def register_raw_update_listener: (listener: RawUpdateFeatureListener) -> void
 

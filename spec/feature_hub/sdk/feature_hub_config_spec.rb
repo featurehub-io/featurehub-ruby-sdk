@@ -7,28 +7,98 @@ RSpec.describe FeatureHub::Sdk::FeatureHubConfig do
     end.to raise_error(RuntimeError, "api keys must all be of one type")
   end
 
-  it "should ensure edge url is not nil" do
-    expect do
-      FeatureHub::Sdk::FeatureHubConfig.new(nil, ["abs*123"])
-    end.to raise_error(RuntimeError, "edge_url is not set to a valid string")
+  describe "no-edge mode" do
+    it "enters no-edge mode when no url or keys are provided and env vars are absent" do
+      config = FeatureHub::Sdk::FeatureHubConfig.new
+      aggregate_failures do
+        expect(config.edge_url).to be_nil
+        expect(config.api_keys).to be_empty
+        expect(config.client_evaluated).to eq(false)
+      end
+    end
+
+    it "enters no-edge mode when url is given but no keys and env vars are absent" do
+      config = FeatureHub::Sdk::FeatureHubConfig.new("http://localhost")
+      expect(config.api_keys).to be_empty
+    end
+
+    it "enters no-edge mode when keys are given but no url and env vars are absent" do
+      config = FeatureHub::Sdk::FeatureHubConfig.new(nil, ["abc123"])
+      expect(config.edge_url).to be_nil
+    end
+
+    it "treats an empty string url the same as nil" do
+      config = FeatureHub::Sdk::FeatureHubConfig.new("", ["abc123"])
+      expect(config.edge_url).to be_nil
+    end
+
+    it "init is a no-op and does not raise" do
+      config = FeatureHub::Sdk::FeatureHubConfig.new
+      expect { config.init }.not_to raise_error
+    end
+
+    it "new_context returns a server context backed by a null edge service" do
+      config = FeatureHub::Sdk::FeatureHubConfig.new
+      expect(config.new_context).to be_a(FeatureHub::Sdk::ServerEvalFeatureContext)
+    end
   end
 
-  it "should ensure edge url is not empty" do
-    expect do
-      FeatureHub::Sdk::FeatureHubConfig.new("", ["abs*123"])
-    end.to raise_error(RuntimeError, "edge_url is not set to a valid string")
-  end
+  describe "resolving from environment variables" do
+    around do |example|
+      orig_url = ENV["FEATUREHUB_EDGE_URL"]
+      orig_client = ENV["FEATUREHUB_CLIENT_API_KEY"]
+      orig_server = ENV["FEATUREHUB_SERVER_API_KEY"]
+      example.run
+    ensure
+      ENV["FEATUREHUB_EDGE_URL"] = orig_url
+      ENV["FEATUREHUB_CLIENT_API_KEY"] = orig_client
+      ENV["FEATUREHUB_SERVER_API_KEY"] = orig_server
+    end
 
-  it "should ensure api keys are not nil" do
-    expect do
-      FeatureHub::Sdk::FeatureHubConfig.new("http://localhost", nil)
-    end.to raise_error(RuntimeError, "api_keys must be an array of API keys")
-  end
+    it "picks up the edge url from FEATUREHUB_EDGE_URL" do
+      ENV["FEATUREHUB_EDGE_URL"] = "http://from-env"
+      ENV["FEATUREHUB_CLIENT_API_KEY"] = "abc*123"
+      config = FeatureHub::Sdk::FeatureHubConfig.new
+      expect(config.edge_url).to eq("http://from-env/")
+    end
 
-  it "should ensure api keys are not empty" do
-    expect do
-      FeatureHub::Sdk::FeatureHubConfig.new("http://localhost", [])
-    end.to raise_error(RuntimeError, "api_keys must be an array of API keys")
+    it "picks up a client key from FEATUREHUB_CLIENT_API_KEY" do
+      ENV["FEATUREHUB_EDGE_URL"] = "http://from-env"
+      ENV["FEATUREHUB_CLIENT_API_KEY"] = "abc*123"
+      config = FeatureHub::Sdk::FeatureHubConfig.new
+      aggregate_failures do
+        expect(config.api_keys).to eq(["abc*123"])
+        expect(config.client_evaluated).to eq(true)
+      end
+    end
+
+    it "picks up a server key from FEATUREHUB_SERVER_API_KEY" do
+      ENV["FEATUREHUB_EDGE_URL"] = "http://from-env"
+      ENV["FEATUREHUB_SERVER_API_KEY"] = "abc123"
+      config = FeatureHub::Sdk::FeatureHubConfig.new
+      aggregate_failures do
+        expect(config.api_keys).to eq(["abc123"])
+        expect(config.client_evaluated).to eq(false)
+      end
+    end
+
+    it "explicit arguments take priority over env vars" do
+      ENV["FEATUREHUB_EDGE_URL"] = "http://from-env"
+      ENV["FEATUREHUB_CLIENT_API_KEY"] = "env*key"
+      config = FeatureHub::Sdk::FeatureHubConfig.new("http://explicit", ["explicit*key"])
+      aggregate_failures do
+        expect(config.edge_url).to eq("http://explicit/")
+        expect(config.api_keys).to eq(["explicit*key"])
+      end
+    end
+
+    it "enters no-edge mode when env vars are also absent" do
+      ENV.delete("FEATUREHUB_EDGE_URL")
+      ENV.delete("FEATUREHUB_CLIENT_API_KEY")
+      ENV.delete("FEATUREHUB_SERVER_API_KEY")
+      config = FeatureHub::Sdk::FeatureHubConfig.new
+      expect(config.edge_url).to be_nil
+    end
   end
 
   it "should detect client evaluated keys" do
@@ -50,6 +120,13 @@ RSpec.describe FeatureHub::Sdk::FeatureHubConfig do
     api_keys = %w[abc 123 xyz]
     config = FeatureHub::Sdk::FeatureHubConfig.new("http://localhost", api_keys)
     expect(config.api_keys).to eq(api_keys)
+  end
+
+  it "delegates register_interceptor to the repository" do
+    config = FeatureHub::Sdk::FeatureHubConfig.new("http://localhost", ["abc123"])
+    interceptor = instance_double(FeatureHub::Sdk::ValueInterceptor)
+    expect(config.repository).to receive(:register_interceptor).with(interceptor)
+    config.register_interceptor(interceptor)
   end
 
   describe "with simple setup" do

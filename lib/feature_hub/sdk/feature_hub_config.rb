@@ -4,8 +4,14 @@ module FeatureHub
   module Sdk
     # interface style definition for all edge services
     class EdgeService
-      # abstract
-      def initialize(repository, api_keys, edge_url, logger = nil) end
+      attr_reader :repository
+
+      def initialize(repository, api_keys, edge_url, logger = nil)
+        @repository = repository
+        @api_keys = api_keys
+        @edge_url = edge_url
+        @logger = logger
+      end
 
       # abstract
       def poll; end
@@ -21,18 +27,24 @@ module FeatureHub
     class FeatureHubConfig
       attr_reader :edge_url, :api_keys, :client_evaluated, :logger
 
-      def initialize(edge_url, api_keys, repository = nil, edge_provider = nil, logger = nil)
-        raise "edge_url is not set to a valid string" if edge_url.nil? || edge_url.strip.empty?
-
-        raise "api_keys must be an array of API keys" if api_keys.nil? || !api_keys.is_a?(Array) || api_keys.empty?
-
-        detect_client_evaluated(api_keys)
-
-        @edge_url = parse_edge_url(edge_url)
-        @api_keys = api_keys
+      def initialize(edge_url = nil, api_keys = nil, repository = nil, edge_provider = nil, logger = nil)
         @logger = logger || FeatureHub::Sdk.default_logger
         @repository = repository || FeatureHub::Sdk::FeatureHubRepository.new(nil, @logger)
-        @edge_service_provider = edge_provider || method(:create_default_provider)
+
+        resolved_url = resolve_edge_url(edge_url)
+        resolved_keys = resolve_api_keys(api_keys)
+
+        if resolved_url && resolved_keys && !resolved_keys.empty?
+          detect_client_evaluated(resolved_keys)
+          @edge_url = parse_edge_url(resolved_url)
+          @api_keys = resolved_keys
+          @edge_service_provider = edge_provider || method(:create_default_provider)
+        else
+          @edge_url = nil
+          @api_keys = []
+          @client_evaluated = false
+          @edge_service_provider = edge_provider || method(:create_null_provider)
+        end
       end
 
       def repository(repo = nil)
@@ -41,6 +53,10 @@ module FeatureHub
 
       def feature(key, attrs = nil)
         @repository.feature(key, attrs)
+      end
+
+      def register_interceptor(interceptor)
+        @repository.register_interceptor(interceptor)
       end
 
       def register_raw_update_listener(listener)
@@ -129,6 +145,21 @@ module FeatureHub
 
       def create_default_provider(repo, api_keys, edge_url, logger)
         FeatureHub::Sdk::StreamingEdgeService.new(repo, api_keys, edge_url, logger)
+      end
+
+      def resolve_edge_url(edge_url)
+        url = edge_url.nil? || edge_url.strip.empty? ? ENV["FEATUREHUB_EDGE_URL"] : edge_url
+        url&.strip&.empty? ? nil : url
+      end
+
+      def resolve_api_keys(api_keys)
+        return api_keys if api_keys.is_a?(Array) && !api_keys.empty?
+
+        [ENV["FEATUREHUB_CLIENT_API_KEY"], ENV["FEATUREHUB_SERVER_API_KEY"]].compact
+      end
+
+      def create_null_provider(repo, api_keys, edge_url, logger)
+        EdgeService.new(repo, api_keys, edge_url, logger)
       end
 
       def detect_client_evaluated(api_keys)

@@ -7,16 +7,14 @@ module FeatureHub
   module Sdk
     # provides a streaming service
     class StreamingEdgeService < FeatureHub::Sdk::EdgeService
-      attr_reader :repository, :sse_client, :url, :stopped
+      attr_reader :sse_client, :url, :stopped
 
       def initialize(repository, api_keys, edge_url, logger = nil)
-        super(repository, api_keys, edge_url)
+        super(repository, api_keys, edge_url, logger || FeatureHub::Sdk.default_logger)
 
         @url = "#{edge_url}features/#{api_keys[0]}"
-        @repository = repository
         @sse_client = nil
         @context = nil
-        @logger = logger || FeatureHub::Sdk.default_logger
       end
 
       def closed

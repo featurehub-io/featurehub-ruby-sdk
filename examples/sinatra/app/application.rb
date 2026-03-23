@@ -7,21 +7,21 @@ require "json"
 
 def configure_featurehub
   puts "FeatureHub SDK Version is #{FeatureHub::Sdk::VERSION}"
-  config = FeatureHub::Sdk::FeatureHubConfig.new(ENV.fetch("FEATUREHUB_EDGE_URL", "http://localhost:8903"),
-                                                 [
-                                                   ENV.fetch("FEATUREHUB_CLIENT_API_KEY",
-                                                             "41ef6f5e-a70b-4ace-b6b5-8a3f1d636101/2PTj12Bn50Xn7Wt4yS9heBXtok3KGFAE9KW0Cms3") # rubocop:disable Layout/LineLength
-                                                 ])
+
+  config = FeatureHub::Sdk::FeatureHubConfig.new
+  repo = config.repository
+
   if ENV['FEATUREHUB_REDIS_STORE']
-    repo = config.repository
     config.register_raw_update_listener(FeatureHub::Sdk::RedisSessionStore.new(ENV['FEATUREHUB_REDIS_STORE'], repo))
   end
 
-  if ENV['FEATUREHUB_START_NO_INIT']
-    puts "App is starting without connecting to edge service."
-  else
-    config.init
+  if ENV['FEATUREHUB_LOCAL_YAML']
+    config.register_raw_update_listener(FeatureHub::Sdk::LocalYamlStorage.new(repo))
+    config.register_interceptor(FeatureHub::Sdk::LocalYamlValueInterceptor.new(watch: true))
   end
+
+  # connect to edge service
+  config.init
 end
 
 Todo = Struct.new(:id, :title, :resolved)
@@ -139,10 +139,10 @@ class App < Sinatra::Base
 
     new_title = new_title.upcase if ctx.enabled?("FEATURE_TITLE_TO_UPPERCASE")
 
-    puts("features via repository: #{settings.fh_config.repository.features}")
-    puts("features via edge service: #{settings.fh_config.get_or_create_edge_service.repository}")
+    # puts("features via repository: #{settings.fh_config.repository.features}")
+    # puts("features via edge service: #{settings.fh_config.get_or_create_edge_service.repository}")
 
-    puts("enabled? #{ctx.repo.features}")
+    # puts("enabled? #{ctx.repo.features}")
     puts(ctx.enabled?("FEATURE_TITLE_TO_UPPERCASE"))
     puts(ctx.flag("FEATURE_TITLE_TO_UPPERCASE"))
     puts(settings.fh_config.repository.feature("FEATURE_TITLE_TO_UPPERCASE").feature_type)

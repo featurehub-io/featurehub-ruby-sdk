@@ -108,7 +108,7 @@ module FeatureHub
 
       def get_value(feature_type)
         unless locked?
-          matched, intercept_value = @repo.find_interceptor(@key, top_feature_state)
+          matched, intercept_value = @repo.find_interceptor(@key, top_feature_state.feature_state)
 
           return intercept_value if matched
         end

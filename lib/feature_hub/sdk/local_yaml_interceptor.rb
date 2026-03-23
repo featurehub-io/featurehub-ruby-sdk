@@ -52,11 +52,13 @@ module FeatureHub
       private
 
       def reload_if_changed
+        puts "checking for file #{@yaml_file}"
         return unless File.exist?(@yaml_file)
 
         current_mtime = File.mtime(@yaml_file)
+        puts "time is #{current_mtime} vs #{@last_mtime}"
         return if current_mtime == @last_mtime
-
+        puts "reloading, file changed"
         @last_mtime = current_mtime
         new_values = load_flag_values(@yaml_file)
         @mutex.synchronize { @flag_values = new_values }
