@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "concurrent-ruby"
+
 module FeatureHub
   module Sdk
     # the core implementation of a feature repository
@@ -10,6 +12,7 @@ module FeatureHub
         super()
         @strategy_matcher = apply_features || FeatureHub::Sdk::Impl::ApplyFeature.new
         @interceptors = []
+        @raw_listeners = []
         @features = {}
         @ready = false
       end
@@ -32,11 +35,17 @@ module FeatureHub
         when :features
           update_features(data)
           @ready = true
+          notify_raw_listeners_async { |l| l.process_updates(data, source) }
         when :feature
+          return if data.nil? || data["key"].nil?
           update_feature(data)
           @ready = true
+          notify_raw_listeners_async { |l| l.process_update(data, source) }
         when :delete_feature
+          return unless data && data["key"]
+
           delete_feature(data)
+          notify_raw_listeners_async { |l| l.delete_feature(data, source) }
         end
       end
 
@@ -49,6 +58,10 @@ module FeatureHub
         @interceptors.push(interceptor)
       end
 
+      def register_raw_update_listener(listener)
+        @raw_listeners.push(listener)
+      end
+
       def find_interceptor(feature_key, feature_state = nil)
         @interceptors.each do |interceptor|
           matched, value = interceptor.intercepted_value(feature_key, self, feature_state)
@@ -59,6 +72,7 @@ module FeatureHub
 
       def close
         @interceptors.each(&:close)
+        @raw_listeners.each(&:close)
       end
 
       def ready?
@@ -78,8 +92,6 @@ module FeatureHub
       private
 
       def delete_feature(data)
-        return unless data && data["key"]
-
         feat = @features[data["key"].to_sym]
 
         feat&.update_feature_state(nil)
@@ -97,9 +109,14 @@ module FeatureHub
         end
       end
 
-      def update_feature(feature_state)
-        return if feature_state.nil? || feature_state["key"].nil?
+      def notify_raw_listeners_async
+        return if @raw_listeners.empty?
 
+        listeners = @raw_listeners.dup
+        Concurrent::Future.execute { listeners.each { |l| yield l } }
+      end
+
+      def update_feature(feature_state)
         key = feature_state["key"].to_sym
         holder = @features[key]
         if !holder

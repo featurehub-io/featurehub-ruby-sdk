@@ -126,6 +126,18 @@ module FeatureHub
     class EnvironmentInterceptor < ValueInterceptor
     end
 
+    class RawUpdateFeatureListener
+      def delete_feature: (feature: FeatureState, source: String) -> void
+
+      def process_updates: (features: Array[FeatureState], source: String) -> void
+
+      def process_update: (feature: FeatureState, source: String) -> void
+
+      def close: () -> void
+
+      def config_changed: () -> void
+    end
+
     class PercentageCalculator
       def determine_client_percentage: (percentage_text: String, feature_id: String) -> int
     end
@@ -167,6 +179,8 @@ module FeatureHub
       def feature: (key: String) -> FeatureStateHolder
 
       def register_interceptor: (interceptor: ValueInterceptor) -> void
+
+      def register_raw_update_listener: (listener: RawUpdateFeatureListener) -> void
 
       def find_interceptor: (feature_key: Symbol, feature_state: FeatureStateHolder?) -> [bool, (bool? | String? | Float?)]
 
@@ -270,6 +284,8 @@ module FeatureHub
       # def edge_service_provider:
       #
       def use_polling_edge_service: (interval: int?) -> void
+
+      def register_raw_update_listener: (listener: RawUpdateFeatureListener) -> void
 
       def new_context: -> ClientContext
 

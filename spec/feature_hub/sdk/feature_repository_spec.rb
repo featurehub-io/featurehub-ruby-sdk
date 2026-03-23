@@ -178,4 +178,59 @@ RSpec.describe FeatureHub::Sdk::FeatureHubRepository do
       repo.notify("feature", data)
     end
   end
+
+  describe "RawUpdateFeatureListener" do
+    let(:repo) { FeatureHub::Sdk::FeatureHubRepository.new }
+    let(:listener) { instance_double(FeatureHub::Sdk::RawUpdateFeatureListener) }
+
+    before do
+      allow(Concurrent::Future).to receive(:execute) { |&block| block.call }
+      repo.register_raw_update_listener(listener)
+    end
+
+    it "calls process_updates on listeners when features are received" do
+      features = JSON.parse('[{"key": "flag", "version": 1, "type": "BOOLEAN", "value": true}]')
+      expect(listener).to receive(:process_updates).with(features, "streaming")
+      repo.notify("features", features, "streaming")
+    end
+
+    it "calls process_update on listeners when a single feature is received" do
+      data = JSON.parse('{"key": "flag", "version": 1, "type": "BOOLEAN", "value": true}')
+      expect(listener).to receive(:process_update).with(data, "polling")
+      repo.notify("feature", data, "polling")
+    end
+
+    it "calls delete_feature on listeners when a feature is deleted" do
+      data = JSON.parse('{"key": "flag"}')
+      expect(listener).to receive(:delete_feature).with(data, "streaming")
+      repo.notify("delete_feature", data, "streaming")
+    end
+
+    it "passes the default source of unknown when no source is given" do
+      features = JSON.parse('[{"key": "flag", "version": 1, "type": "BOOLEAN", "value": true}]')
+      expect(listener).to receive(:process_updates).with(features, "unknown")
+      repo.notify("features", features)
+    end
+
+    it "notifies all registered listeners" do
+      listener2 = instance_double(FeatureHub::Sdk::RawUpdateFeatureListener)
+      repo.register_raw_update_listener(listener2)
+      features = JSON.parse('[{"key": "flag", "version": 1, "type": "BOOLEAN", "value": true}]')
+      expect(listener).to receive(:process_updates).with(features, "polling")
+      expect(listener2).to receive(:process_updates).with(features, "polling")
+      repo.notify("features", features, "polling")
+    end
+
+    it "does not call listeners when status is failed" do
+      expect(listener).not_to receive(:process_updates)
+      expect(listener).not_to receive(:process_update)
+      expect(listener).not_to receive(:delete_feature)
+      repo.notify("failed", nil)
+    end
+
+    it "calls close on all listeners when the repository is closed" do
+      expect(listener).to receive(:close)
+      repo.close
+    end
+  end
 end

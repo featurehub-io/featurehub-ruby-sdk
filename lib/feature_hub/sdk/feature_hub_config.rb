@@ -39,6 +39,11 @@ module FeatureHub
         @repository = repo || @repository
       end
 
+      def register_raw_update_listener(listener)
+        @repository ||= FeatureHub::Sdk::FeatureHubRepository.new
+        @repository.register_raw_update_listener(listener)
+      end
+
       def init
         get_or_create_edge_service.poll
         self
