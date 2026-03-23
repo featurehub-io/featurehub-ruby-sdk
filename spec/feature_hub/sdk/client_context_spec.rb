@@ -52,6 +52,7 @@ RSpec.describe FeatureHub::Sdk::ClientContext do
     before do
       @feature = instance_double(FeatureHub::Sdk::FeatureStateHolder)
       expect(@repo).to receive(:feature).with("feature").and_return(@feature)
+      allow(@feature).to receive(:with_context).with(@ctx).and_return(@feature)
     end
 
     it "string" do
@@ -107,5 +108,59 @@ RSpec.describe FeatureHub::Sdk::ClientContext do
 
   it "can chain" do
     @ctx.build.build_sync
+  end
+
+  describe "initialization with attrs" do
+    it "pre-populates attributes from a hash passed to the constructor" do
+      ctx = FeatureHub::Sdk::ClientContext.new(@repo, { userkey: "init_user", custom: "val" })
+      aggregate_failures do
+        expect(ctx.get_attr(ContextKeys::USERKEY)).to eq(["init_user"])
+        expect(ctx.get_attr(:custom)).to eq(["val"])
+      end
+    end
+
+    it "works fine with no attrs argument" do
+      ctx = FeatureHub::Sdk::ClientContext.new(@repo)
+      expect(ctx.get_attr(ContextKeys::USERKEY)).to eq([])
+    end
+  end
+
+  describe "#assign" do
+    it "sets well-known keys via their dedicated methods" do
+      @ctx.assign({ userkey: "fred", session: "sess1" })
+      aggregate_failures do
+        expect(@ctx.get_attr(ContextKeys::USERKEY)).to eq(["fred"])
+        expect(@ctx.get_attr(ContextKeys::SESSION)).to eq(["sess1"])
+      end
+    end
+
+    it "accepts string keys for well-known attributes" do
+      @ctx.assign({ "userkey" => "stringuser", "country" => "nz" })
+      aggregate_failures do
+        expect(@ctx.get_attr(ContextKeys::USERKEY)).to eq(["stringuser"])
+        expect(@ctx.get_attr(ContextKeys::COUNTRY)).to eq(["nz"])
+      end
+    end
+
+    it "merges unknown keys via attribute_value" do
+      @ctx.assign({ flavour: "cumberlands", texture: ["crisp", "hearty"] })
+      aggregate_failures do
+        expect(@ctx.get_attr(:flavour)).to eq(["cumberlands"])
+        expect(@ctx.get_attr(:texture)).to eq(["crisp", "hearty"])
+      end
+    end
+
+    it "handles a mixed hash of well-known and unknown keys" do
+      @ctx.assign({ userkey: "u1", platform: "ios", custom_attr: "val" })
+      aggregate_failures do
+        expect(@ctx.get_attr(ContextKeys::USERKEY)).to eq(["u1"])
+        expect(@ctx.get_attr(ContextKeys::PLATFORM)).to eq(["ios"])
+        expect(@ctx.get_attr(:custom_attr)).to eq(["val"])
+      end
+    end
+
+    it "returns self for chaining" do
+      expect(@ctx.assign({})).to eq(@ctx)
+    end
   end
 end

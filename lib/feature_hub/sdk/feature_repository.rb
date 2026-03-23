@@ -59,9 +59,11 @@ module FeatureHub
         end
       end
 
-      def feature(key)
-        sym_key = key.to_sym
-        @features[sym_key] || make_feature_holder(sym_key)
+      def feature(key, attrs = nil)
+        holder = @features[key.to_sym] || make_feature_holder(key.to_sym)
+        return holder unless attrs
+
+        ClientContext.new(self, attrs).feature(key)
       end
 
       def register_interceptor(interceptor)

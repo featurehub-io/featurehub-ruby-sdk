@@ -39,6 +39,10 @@ module FeatureHub
         @repository = repo || @repository
       end
 
+      def feature(key, attrs = nil)
+        @repository.feature(key, attrs)
+      end
+
       def register_raw_update_listener(listener)
         @repository ||= FeatureHub::Sdk::FeatureHubRepository.new(nil, @logger)
         @repository.register_raw_update_listener(listener)

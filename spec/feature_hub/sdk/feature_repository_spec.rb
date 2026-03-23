@@ -179,6 +179,32 @@ RSpec.describe FeatureHub::Sdk::FeatureHubRepository do
     end
   end
 
+  describe "#feature with attrs" do
+    let(:repo) { FeatureHub::Sdk::FeatureHubRepository.new }
+
+    before do
+      repo.notify("features", [{ "id" => "abc", "key" => "SUBMIT_COLOR_BUTTON", "version" => 1,
+                                  "type" => "STRING", "value" => "orange", "l" => false,
+                                  "strategies" => [{ "id" => "s1", "value" => "green",
+                                                     "attributes" => [{ "conditional" => "EQUALS",
+                                                                        "fieldName" => "country",
+                                                                        "values" => ["nz"],
+                                                                        "type" => "STRING" }] }] }])
+    end
+
+    it "returns the default value when attrs do not match any strategy" do
+      expect(repo.feature("SUBMIT_COLOR_BUTTON", { country: "au" }).string).to eq("orange")
+    end
+
+    it "returns the strategy value when attrs match" do
+      expect(repo.feature("SUBMIT_COLOR_BUTTON", { country: "nz" }).string).to eq("green")
+    end
+
+    it "behaves the same as calling feature without attrs when attrs is nil" do
+      expect(repo.feature("SUBMIT_COLOR_BUTTON", nil).string).to eq("orange")
+    end
+  end
+
   describe "RawUpdateFeatureListener" do
     let(:repo) { FeatureHub::Sdk::FeatureHubRepository.new }
     let(:listener) { instance_double(FeatureHub::Sdk::RawUpdateFeatureListener) }

@@ -37,6 +37,10 @@ module FeatureHub
       "strategies" => Array[FeatureRolloutStrategyHash]?
     }
 
+    type ContextAttributeScalar = String | bool | Float
+    type ContextAttributeValue = ContextAttributeScalar | Array[String] | Array[bool] | Array[Float]
+    type ContextAttributes = Hash[Symbol, Array[ContextAttributeScalar]]
+
     # See the writing guide of rbs: https://github.com/ruby/rbs#guides
     #
 
@@ -165,7 +169,7 @@ module FeatureHub
     end
 
     class InternalFeatureRepository
-      def feature: (key: String) -> FeatureStateHolder?
+      def feature: (key: String, ?attrs: Hash[untyped, ContextAttributeValue]?) -> FeatureStateHolder?
 
       def find_interceptor: (feature_key: Symbol, feature_state: FeatureStateHolder?) -> [bool, (bool? | String? | Float?)]
 
@@ -188,7 +192,7 @@ module FeatureHub
 
       def notify: (status: String, data: FeatureState, ?source: String) -> void
 
-      def feature: (key: String) -> FeatureStateHolder
+      def feature: (key: String, ?attrs: Hash[untyped, ContextAttributeValue]?) -> FeatureStateHolder
 
       def register_interceptor: (interceptor: ValueInterceptor) -> void
 
@@ -208,7 +212,7 @@ module FeatureHub
     class ClientContext
       attr_reader repo: InternalFeatureRepository
 
-      def initialize: (repository: InternalFeatureRepository) -> void
+      def initialize: (repository: InternalFeatureRepository, ?attrs: Hash[untyped, ContextAttributeValue]?) -> void
 
       def user_key: (value: String) -> ClientContext
 
@@ -216,17 +220,19 @@ module FeatureHub
 
       def version: (value: String) -> ClientContext
 
-      def country: (value: Symbol) -> ClientContext
+      def country: (value: String | Symbol) -> ClientContext
 
-      def platform: (value: Symbol) -> ClientContext
+      def platform: (value: String | Symbol) -> ClientContext
 
-      def device: (value: Symbol) -> ClientContext
+      def device: (value: String | Symbol) -> ClientContext
 
-      def attribute_value: (key: String, values: Array[String]) -> ClientContext
+      def attribute_value: (key: String | Symbol, values: ContextAttributeValue) -> ClientContext
+
+      def assign: (attrs: Hash[untyped, ContextAttributeValue]) -> ClientContext
 
       def clear: -> ClientContext
 
-      def get_attr: (key: String, default_val: String?) -> Array[String]
+      def get_attr: (key: String | Symbol, ?default_val: ContextAttributeScalar?) -> Array[ContextAttributeScalar]
 
       def default_percentage_key: -> String?
 
