@@ -1,18 +1,18 @@
-# Official FeatureHub Ruby SDK.
+# Official FeatureHub Ruby SDK
 
 ## Overview
-To control the feature flags from the FeatureHub Admin console, either use our [demo](https://demo.featurehub.io) version for evaluation or install the app using our guide [here](https://docs.featurehub.io/featurehub/latest/installation.html)
+
+To control the feature flags from the FeatureHub Admin console, either use our [demo](https://demo.featurehub.io) version for evaluation or install the app using our guide [here](https://docs.featurehub.io/featurehub/latest/installation.html).
 
 ## SDK installation
 
-Add the featurehub sdk gem to your Gemfile and/or gemspec if you are creating a library:
+Add the featurehub-sdk gem to your Gemfile:
 
-```
-gem `featurehub-sdk`
+```ruby
+gem 'featurehub-sdk'
 ```
 
-               
-To use it in your code, use:
+To use it in your code:
 
 ```ruby
 require 'featurehub-sdk'
@@ -20,216 +20,373 @@ require 'featurehub-sdk'
 
 ## Options to get feature updates
 
-There are 2 ways to request for feature updates via this SDK:
+There are 2 ways to request feature updates via this SDK:
 
-- **SSE (Server Sent Events) realtime updates mechanism**
+- **SSE (Server Sent Events) realtime updates**
 
-  In this mode, you will make a connection to the FeatureHub Edge server using using Server Sent Events, any updates to any features will come through in _near realtime_, automatically updating the feature values in the repository. This method is recommended for server applications.
+  Makes a persistent connection to the FeatureHub Edge server. Any updates to features come through in near-realtime, automatically updating the repository. Recommended for long-running server applications.
 
-- **FeatureHub polling client (GET request updates)**
+- **Polling client (GET request)**
 
-  In this mode you can set an interval (from 0 - just once) to any number of seconds between polling. This is more useful for when you have short term single threaded
-  processes like command line tools. Batch tools that iterate over data sets and wish to control when updates happen can also benefit from this method.
+  Requests updates at a configurable interval (0 = once only). Useful for short-lived processes such as CLI tools or batch jobs.
 
-This SDK uses concurrent ruby to ensure whichever option you choose stays open and continually updates your data.
-
-## Example
-
-Check our example Sinatra app [here](https://github.com/featurehub-io/featurehub-ruby-sdk/tree/main/example/sinatra)
+Both options use `concurrent-ruby` to keep the connection open and update state in the background.
 
 ## Quick start
 
-### Connecting to FeatureHub
-There are 3 steps to connecting:
-1) Copy FeatureHub API Key from the FeatureHub Admin Console
-2) Create FeatureHub config
-3) Check FeatureHub Repository readiness and request feature state
+### 1. Copy your API Key
 
-#### 1. API Key from the FeatureHub Admin Console
-Find and copy your API Key from the FeatureHub Admin Console on the API Keys page -
-you will use this in your code to configure feature updates for your environments.
-It should look similar to this: ```default/71ed3c04-122b-4312-9ea8-06b2b8d6ceac/fsTmCrcZZoGyl56kPHxfKAkbHrJ7xZMKO3dlBiab5IqUXjgKvqpjxYdI8zdXiJqYCpv92Jrki0jY5taE```.
-There are two options - a Server Evaluated API Key and a Client Evaluated API Key. More on this [here](https://docs.featurehub.io/#_client_and_server_api_keys)
+Find and copy your API Key from the FeatureHub Admin Console on the API Keys page. It will look similar to:
 
-Client Side evaluation is intended for use in secure environments (such as microservices) and is intended for rapid client side evaluation, per request for example.
+```
+default/71ed3c04-122b-4312-9ea8-06b2b8d6ceac/fsTmCrcZZoGyl56kPHxfKAkbHrJ7xZMKO3dlBiab5IqUXjgKvqpjxYdI8zdXiJqYCpv92Jrki0jY5taE
+```
 
-Server Side evaluation is more suitable when you are using an _insecure client_. (e.g. command line tool). This also means you evaluate one user per client.
+There are two key types — Server Evaluated and Client Evaluated. More detail [here](https://docs.featurehub.io/#_client_and_server_api_keys).
 
-#### 2. Create FeatureHub config:
+- **Client Evaluated** keys (contain `*`) send full rollout strategy data to the SDK and evaluate strategies locally, per request. Intended for secure server-side environments such as microservices.
+- **Server Evaluated** keys evaluate on the server side. Suitable for insecure clients or environments where you evaluate one user per connection.
 
-Create `FeatureHubConfig`. You need to provide the API Key and the URL of the FeatureHub Edge server.
+### 2. Create FeatureHub config
 
 ```ruby
-config = FeatureHub::Sdk::FeatureHubConfig.new(ENV.fetch("FEATUREHUB_EDGE_URL"),
-                                                 [ENV.fetch("FEATUREHUB_CLIENT_API_KEY")])
+config = FeatureHub::Sdk::FeatureHubConfig.new(
+  ENV.fetch("FEATUREHUB_EDGE_URL"),
+  [ENV.fetch("FEATUREHUB_CLIENT_API_KEY")]
+)
 config.init
-
 ```
-    
-Note, you only ever need to do this once, a Config consists of a Repository
-(which holds state) and an Edge Server (which gets the updates and passes them
-on to the Repository). You can have many of them if you wish, but you don't need
-to. 
-     
-to in Rails, you might create an initializer that does this:
+
+You only ever need to do this once. A `FeatureHubConfig` holds a `FeatureHubRepository` (state) and an edge service (updates). In Rails, create an initializer:
 
 ```ruby
-Rails.configuration.fh_client = FeatureHub::Sdk::FeatureHubConfig.new(ENV.fetch("FEATUREHUB_EDGE_URL"),
-                                                 [ENV.fetch("FEATUREHUB_CLIENT_API_KEY")]).init
+Rails.configuration.fh_client = FeatureHub::Sdk::FeatureHubConfig.new(
+  ENV.fetch("FEATUREHUB_EDGE_URL"),
+  [ENV.fetch("FEATUREHUB_CLIENT_API_KEY")]
+).init
 ```
 
-in Sinatra (our example), it might do this:
+In Sinatra:
 
 ```ruby
 class App < Sinatra::Base
-    configure do
-        set :fh_config, FeatureHub::Sdk::FeatureHubConfig.new(ENV.fetch("FEATUREHUB_EDGE_URL"),
-                                                              [ENV.fetch("FEATUREHUB_CLIENT_API_KEY")])
-    end
+  configure do
+    set :fh_config, FeatureHub::Sdk::FeatureHubConfig.new(
+      ENV.fetch("FEATUREHUB_EDGE_URL"),
+      [ENV.fetch("FEATUREHUB_CLIENT_API_KEY")]
+    )
+  end
 end
 ```
 
-
-By default, this SDK will use SSE client. If you decide to use FeatureHub polling client, after initialising the config, you can add this:
+To use the polling client instead of SSE:
 
 ```ruby
 config.use_polling_edge_service(30)
-# OR
-config.use_polling_edge_service # uses environment variable FEATUREHUB_POLL_INTERVAL or default of 30 
+# OR — reads FEATUREHUB_POLL_INTERVAL env var, defaults to 30 seconds
+config.use_polling_edge_service
 ```
 
-in this case it is configured for requesting an update every 30 seconds.
+### 3. Check readiness and request feature state
 
-#### 3. Check FeatureHub Repository readiness and request feature state
-
-Check for FeatureHub Repository readiness:
 ```ruby
 if config.repository.ready?
-  # do something
+  # safe to evaluate features
 end
 ```
 
-If you are not intending to use rollout strategies, you can pass empty context to the SDK:
+See [Readiness](#readiness) below for details on incorporating this into health checks.
+
+## Evaluating features
+
+### Without a context (no rollout strategies)
 
 ```ruby
-def name_arg(name)
-    if config.new_context.build.feature("FEATURE_TITLE_TO_UPPERCASE").flag
-        "HELLO WORLD"
-    else
-        "hello world"
-    end
+if config.new_context.build.feature("FEATURE_TITLE_TO_UPPERCASE").flag
+  "HELLO WORLD"
+else
+  "hello world"
 end
 ```
 
+### With a context (rollout strategies)
 
-If you are using rollout strategies and targeting rules they are all determined by the active _user context_. In this example we pass `user_key` to the context :
+Build a context with the attributes you want to use for strategy evaluation, then call `build` to push them to the server (server-evaluated keys) or trigger a poll (client-evaluated keys):
 
 ```ruby
-def name_arg(name)
-    if config.new_context.user_key(name).build.feature("FEATURE_TITLE_TO_UPPERCASE").flag
-        "HELLO WORLD"
-    else
-        "hello world"
-    end
+ctx = config.new_context
+             .user_key(current_user.id)
+             .country("australia")
+             .platform("ios")
+             .version("2.3.1")
+             .attribute_value("plan", "premium")
+             .build
+
+if ctx.feature("FEATURE_TITLE_TO_UPPERCASE").flag
+  # ...
 end
 ```
 
-Well known fields have their own methods, or you can add custom
-values for fields using `attribute_value(key, [values])`. For
-example if you wish to trigger on specific contract ids and each
-user could have a different set of contract ids, you can add those
-`attribute_value("contract_values", [2,17,45])` and have configured
-your strategy with a list of contract values which trigger the feature.
+#### Well-known context attributes
 
+| Method | ContextKey |
+|---|---|
+| `user_key(value)` | `:userkey` |
+| `session_key(value)` | `:session` |
+| `country(value)` | `:country` |
+| `platform(value)` | `:platform` |
+| `device(value)` | `:device` |
+| `version(value)` | `:version` |
 
-See more options to request feature states [here](https://github.com/featurehub-io/featurehub-ruby-sdk/blob/main/featurehub-sdk/lib/feature_hub/sdk/context.rb)
+#### Custom attributes
 
-### Using inside popular web servers
+```ruby
+ctx.attribute_value("contract_ids", [2, 17, 45])
+```
 
-Because most of the popular webservers use a process per request distributed request distribution model, they
-will generally fork the process when they need more processes to handle the incoming traffic, and this will naturally
-kill the connection to FeatureHub. It does not however reset the cached repository. To ensure your fork is back
-up in running, for various frameworks you will need to ensure the Edge connection is restarted. This consists of
+#### `assign` — bulk-set attributes from a hash
+
+`assign` accepts a hash, maps well-known keys to their dedicated setters, and merges anything else as a custom attribute:
+
+```ruby
+ctx.assign(
+  userkey: current_user.id,
+  country: "nz",
+  plan: "enterprise"
+)
+```
+
+String keys are also accepted (`"userkey"` and `:userkey` are equivalent).
+
+#### Construct a context with initial attributes
+
+Pass a hash directly to `new_context` via the repository, or pre-populate at construction time:
+
+```ruby
+ctx = FeatureHub::Sdk::ClientContext.new(repository, { userkey: "u1", country: "nz" })
+```
+
+#### One-off feature evaluation with inline attributes
+
+If you only need to check one feature and do not want to build a context, you can pass attributes directly to `feature`:
+
+```ruby
+# On the config (delegates to the repository)
+config.feature("SUBMIT_COLOR_BUTTON", { country: "nz" }).string
+
+# Or directly on the repository
+config.repository.feature("SUBMIT_COLOR_BUTTON", { country: "nz", userkey: "u1" }).string
+```
+
+This creates a temporary `ClientContext` internally and evaluates the feature through it.
+
+#### Feature value accessors
+
+| Method | Returns |
+|---|---|
+| `.flag` / `.boolean` | `bool?` |
+| `.string` | `String?` |
+| `.number` | `Float?` |
+| `.raw_json` | `String?` (raw JSON string) |
+| `.json` | `Hash?` (parsed JSON) |
+| `.enabled?` | `bool` (true if flag is on) |
+| `.set?` | `bool` (true if a value has been set) |
+| `.exists?` | `bool` (true if the feature exists in the repository) |
+
+## Feature interceptors
+
+Interceptors let you override feature values at runtime without changing the repository. They are evaluated before rollout strategies.
+
+### Environment variable interceptor
+
+Override any feature at runtime using environment variables:
+
+```
+FEATUREHUB_OVERRIDE_FEATURES=true
+FEATUREHUB_MY_FEATURE=true
+FEATUREHUB_SUBMIT_COLOR_BUTTON=green
+```
+
+```ruby
+config.repository.register_interceptor(FeatureHub::Sdk::EnvironmentInterceptor.new)
+```
+
+### Local YAML interceptor
+
+Override features from a YAML file. Useful during development or testing:
+
+```yaml
+# featurehub-overrides.yaml
+flagValues:
+  MY_FEATURE: true
+  SUBMIT_COLOR_BUTTON: green
+  MAX_RETRIES: 3
+```
+
+```ruby
+config.repository.register_interceptor(
+  FeatureHub::Sdk::LocalYamlValueInterceptor.new
+  # OR specify a file explicitly:
+  # FeatureHub::Sdk::LocalYamlValueInterceptor.new("path/to/overrides.yaml")
+)
+```
+
+The file path defaults to `featurehub-overrides.yaml` in the current directory, or can be set via `FEATUREHUB_LOCAL_YAML`. Pass `watch: true` to automatically reload the file on changes:
+
+```ruby
+FeatureHub::Sdk::LocalYamlValueInterceptor.new(watch: true, watch_interval: 5)
+```
+
+## Offline / local-only mode with LocalYamlStorage
+
+`LocalYamlStorage` loads features from a YAML file directly into the repository, with no Edge connection required. It uses the same file format as `LocalYamlValueInterceptor`. This is useful for tests, CI environments, or services that manage their own feature state.
+
+```yaml
+# features.yaml
+flagValues:
+  MY_FLAG: true
+  SUBMIT_COLOR_BUTTON: green
+  MAX_RETRIES: 3
+  PRICING_CONFIG:
+    base: 9.99
+    tiers: [19.99, 49.99]
+```
+
+```ruby
+repository = FeatureHub::Sdk::FeatureHubRepository.new
+store = FeatureHub::Sdk::LocalYamlStorage.new(repository)
+# OR specify a file:
+store = FeatureHub::Sdk::LocalYamlStorage.new(repository, filename: "features.yaml")
+# OR via env var FEATUREHUB_LOCAL_YAML
+
+repository.feature("MY_FLAG").flag  # => true
+```
+
+The file path defaults to `featurehub-overrides.yaml` or the `FEATUREHUB_LOCAL_YAML` environment variable. Complex values (hashes, arrays) are serialised to a JSON string and stored as a `JSON` feature type.
+
+## Caching feature state in Redis
+
+`RedisSessionStore` persists feature values from a `FeatureHubRepository` to Redis. On startup it replays cached features into the repository, then listens for live updates and writes newer versions back. A background timer re-reads all features periodically so updates from other processes are picked up automatically.
+
+> **Warning:** Do not use `RedisSessionStore` with server-evaluated features. Each server-evaluated context resolves to different values; sharing a single Redis key across processes will cause them to overwrite each other's state.
+
+```ruby
+# Requires the 'redis' gem: gem 'redis', '~> 5'
+store = FeatureHub::Sdk::RedisSessionStore.new(
+  "redis://localhost:6379",
+  config.repository,
+  {
+    prefix:    "myapp",       # Redis key prefix (default: "featurehub")
+    namespace: 0,             # Redis DB index (default: 0)
+    timeout:   60,            # Seconds between periodic reloads (default: 30)
+    password:  "secret"       # Optional Redis password
+  }
+)
+
+# Register it so it also receives live updates
+config.register_raw_update_listener(store)
+
+# Shut down cleanly
+store.close
+```
+
+Redis keys used:
+- `{prefix}_ids` — a Redis SET of feature IDs
+- `{prefix}_{id}` — the JSON-encoded feature state for each feature
+
+## Custom raw update listeners
+
+`RawUpdateFeatureListener` is a base class you can subclass to observe every raw feature update that flows through the repository, regardless of source. Register an instance with the repository (or config) and override only the callbacks you need:
+
+```ruby
+class MyAuditListener < FeatureHub::Sdk::RawUpdateFeatureListener
+  def process_updates(features, source)
+    features.each { |f| Rails.logger.info("bulk update from #{source}: #{f["key"]}") }
+  end
+
+  def process_update(feature, source)
+    Rails.logger.info("single update from #{source}: #{feature["key"]}")
+  end
+
+  def delete_feature(feature, source)
+    Rails.logger.warn("deleted from #{source}: #{feature["key"]}")
+  end
+end
+
+config.register_raw_update_listener(MyAuditListener.new)
+```
+
+Callbacks are dispatched asynchronously via `Concurrent::Future`. The `source` parameter will be `"streaming"`, `"polling"`, `"local-yaml"`, `"redis-store"`, or `"unknown"`.
+
+All listeners are closed automatically when `config.close` or `repository.close` is called.
+
+## Using inside popular web servers
+
+Most popular web servers fork processes to handle traffic. Forking kills the Edge connection but preserves the cached repository. Call `force_new_edge_service` in your framework's post-fork hook to restart the connection:
 
 ```ruby
 config.force_new_edge_service
 ```
 
-#### Resetting in Passenger 
+#### Passenger
 
-In your `config.ru` 
+In `config.ru`:
 
 ```ruby
 if defined?(PhusionPassenger)
   PhusionPassenger.on_event(:starting_worker_process) do |forked|
-    if forked
-      # e.g.
-      # App.settings.fh_config.force_new_edge_service
-    end
+    App.settings.fh_config.force_new_edge_service if forked
   end
 end
-
 ```
 
-#### Resetting in Puma
+#### Puma
 
 ```ruby
 on_worker_boot do
-      # e.g.
-      # App.settings.fh_config.force_new_edge_service
+  App.settings.fh_config.force_new_edge_service
 end
-
 ```
 
-#### Resetting in Unicorn
+#### Unicorn
 
 ```ruby
 after_fork do |_server, _worker|
-      # e.g.
-      # App.settings.fh_config.force_new_edge_service
+  App.settings.fh_config.force_new_edge_service
 end
-
 ```
 
-#### Resetting in Spring 
+#### Spring
 
 ```ruby
-Spring.after_fork do 
-      # e.g.
-      # App.settings.fh_config.force_new_edge_service
+Spring.after_fork do
+  App.settings.fh_config.force_new_edge_service
 end
-
 ```
-        
 
-### Extracting the state 
+## Extracting and restoring state
 
-You can extract the state from a repository and store it somewhere and reload
-it, but it should be done so using the JSON mechanism so it parses correctly. 
+You can snapshot the repository state and reload it later (e.g. as a warm-start cache):
 
 ```ruby
 require 'json'
 
+# Snapshot
 state = config.repository.extract_feature_state
-
-# somehow save it
 save(state.to_json)
 
-# some later stage, reload it or use it as a cache
+# Restore
 config.repository.notify(:features, JSON.parse(read_state))
 ```
 
-### Readyness
+## Readiness
 
-It is encourage that you include the ready state of the repository in your
-readyness check. If your server cannot connect to your FeatureHub repository
-and cannot sensibly operate without it, it is not ready. Once it has received
-initial state it will remain ready even when it temporarily loses connections.
-
-It is only if the key is invalid, or if the repository has never received state,
-that the repository is marked not ready. To determine readyness: 
+It is recommended to include the repository's ready state in your health/readiness check. The repository becomes ready once it has received its first successful update, and stays ready even through temporary connection loss. It is only not ready if the API key is invalid or no state has ever been received:
 
 ```ruby
 config.repository.ready?
 ```
 
+## Examples
+
+Check our example Sinatra app [here](https://github.com/featurehub-io/featurehub-ruby-sdk/tree/main/example/sinatra).
