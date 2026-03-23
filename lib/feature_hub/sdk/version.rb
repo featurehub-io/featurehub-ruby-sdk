@@ -7,7 +7,7 @@ module FeatureHub
 
     def default_logger
       log = ::Logger.new($stdout)
-      log.level = ::Logger::WARN
+      log.level = ::Logger::DEBUG
       log.progname = "featurehub-sdk"
       log
     end

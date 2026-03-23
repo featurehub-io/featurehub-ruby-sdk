@@ -12,8 +12,16 @@ def configure_featurehub
                                                    ENV.fetch("FEATUREHUB_CLIENT_API_KEY",
                                                              "41ef6f5e-a70b-4ace-b6b5-8a3f1d636101/2PTj12Bn50Xn7Wt4yS9heBXtok3KGFAE9KW0Cms3") # rubocop:disable Layout/LineLength
                                                  ])
-  config.use_polling_edge_service(1)
-  config.init
+  if ENV['FEATUREHUB_REDIS_STORE']
+    repo = config.repository
+    config.register_raw_update_listener(FeatureHub::Sdk::RedisSessionStore.new(ENV['FEATUREHUB_REDIS_STORE'], repo))
+  end
+
+  if ENV['FEATUREHUB_START_NO_INIT']
+    puts "App is starting without connecting to edge service."
+  else
+    config.init
+  end
 end
 
 Todo = Struct.new(:id, :title, :resolved)
@@ -32,6 +40,10 @@ class App < Sinatra::Base
 
   before do
     content_type "application/json"
+  end
+
+  get("/config/disconnect-edge") do
+    settings.fh_config.close_edge
   end
 
   # Routes

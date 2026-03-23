@@ -144,6 +144,20 @@ module FeatureHub
       def initialize: (repository: FeatureHubRepository, ?filename: String?) -> void
     end
 
+    class RedisSessionStoreOptions
+      attr_reader namespace: Integer
+      attr_reader prefix: String
+      attr_reader timeout: Integer
+
+      def initialize: (?namespace: Integer, ?prefix: String, ?timeout: Integer) -> void
+    end
+
+    class RedisSessionStore < RawUpdateFeatureListener
+      SOURCE: String
+
+      def initialize: (connection_string: String, repository: FeatureHubRepository, ?options: RedisSessionStoreOptions?) -> void
+    end
+
     class PercentageCalculator
       def determine_client_percentage: (percentage_text: String, feature_id: String) -> int
     end

@@ -3,20 +3,41 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="rbenv: 3.0.6" jdkType="RUBY_SDK" />
+    <orderEntry type="jdk" jdkName="rbenv: 3.3.10" jdkType="RUBY_SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="PROVIDED" name="concurrent-ruby (v1.1.10, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="domain_name (v0.5.20190701, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="eventmachine (v1.2.7, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="ffi (v1.15.5, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="ffi-compiler (v1.0.1, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="http-cookie (v1.0.5, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="http-form_data (v2.3.0, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="llhttp-ffi (v0.4.0, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="rake (v13.0.6, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="ruby2_keywords (v0.0.5, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="sem_version (v2.0.1, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="unf (v0.1.4, rbenv: 3.0.6) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="unf_ext (v0.0.8.2, rbenv: 3.0.6) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="addressable (v2.8.9, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="bundler (v2.3.15, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="concurrent-ruby (v1.3.6, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="connection_pool (v3.0.2, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="daemons (v1.4.1, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="domain_name (v0.6.20240107, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="eventmachine (v1.2.7, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="faraday (v2.14.1, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="faraday-net_http (v3.4.2, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ffi (v1.17.3, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ffi-compiler (v1.3.2, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="http (v5.3.1, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="http-cookie (v1.1.0, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="http-form_data (v2.3.0, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="json (v2.19.2, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ld-eventsource (v2.5.1, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="llhttp-ffi (v0.5.1, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="logger (v1.7.0, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="murmurhash3 (v0.1.7, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="mustermann (v2.0.2, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="net-http (v0.9.1, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="public_suffix (v7.0.5, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rack (v2.2.6.4, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rack-protection (v2.2.3, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rake (v13.3.1, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="redis (v5.4.1, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="redis-client (v0.28.0, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ruby2_keywords (v0.0.5, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="sem_version (v2.0.1, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="shotgun (v0.9.2, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="sinatra (v2.2.3, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="thin (v1.8.1, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="tilt (v2.1.0, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="uri (v1.1.1, rbenv: 3.3.10) [gem]" level="application" />
   </component>
 </module>

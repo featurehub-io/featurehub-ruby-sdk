@@ -30,9 +30,9 @@ module FeatureHub
 
         @edge_url = parse_edge_url(edge_url)
         @api_keys = api_keys
-        @repository = repository || FeatureHub::Sdk::FeatureHubRepository.new
-        @edge_service_provider = edge_provider || method(:create_default_provider)
         @logger = logger || FeatureHub::Sdk.default_logger
+        @repository = repository || FeatureHub::Sdk::FeatureHubRepository.new(nil, @logger)
+        @edge_service_provider = edge_provider || method(:create_default_provider)
       end
 
       def repository(repo = nil)
@@ -40,7 +40,7 @@ module FeatureHub
       end
 
       def register_raw_update_listener(listener)
-        @repository ||= FeatureHub::Sdk::FeatureHubRepository.new
+        @repository ||= FeatureHub::Sdk::FeatureHubRepository.new(nil, @logger)
         @repository.register_raw_update_listener(listener)
       end
 
@@ -100,6 +100,13 @@ module FeatureHub
           @repository = nil
         end
 
+        return if @edge_service.nil?
+
+        @edge_service.close
+        @edge_service = nil
+      end
+
+      def close_edge
         return if @edge_service.nil?
 
         @edge_service.close

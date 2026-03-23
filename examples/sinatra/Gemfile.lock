@@ -1,55 +1,63 @@
-GIT
-  remote: https://github.com/featurehub-io/featurehub-ruby-sdk.git
-  revision: fa551295ec9703e630452e094d3856117c3d013d
-  glob: featurehub-sdk/*.gemspec
+PATH
+  remote: ../..
   specs:
-    featurehub-sdk (1.2.1)
-      concurrent-ruby (~> 1.1.10)
-      faraday (~> 2.3)
-      ld-eventsource (~> 2.2.0)
-      murmurhash3 (~> 0.1.6)
+    featurehub-sdk (2.0.0)
+      concurrent-ruby (~> 1.3)
+      faraday (~> 2)
+      ld-eventsource (~> 2.5.1)
+      murmurhash3 (~> 0.1.7)
       sem_version (~> 2.0.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.8.1)
-      public_suffix (>= 2.0.2, < 6.0)
-    concurrent-ruby (1.1.10)
+    addressable (2.8.9)
+      public_suffix (>= 2.0.2, < 8.0)
+    concurrent-ruby (1.3.6)
+    connection_pool (3.0.2)
     daemons (1.4.1)
-    domain_name (0.5.20190701)
-      unf (>= 0.0.5, < 1.0.0)
+    domain_name (0.6.20240107)
     eventmachine (1.2.7)
-    faraday (2.7.4)
-      faraday-net_http (>= 2.0, < 3.1)
-      ruby2_keywords (>= 0.0.4)
-    faraday-net_http (3.0.2)
-    ffi (1.15.5)
-    ffi-compiler (1.0.1)
-      ffi (>= 1.0.0)
+    faraday (2.14.1)
+      faraday-net_http (>= 2.0, < 3.5)
+      json
+      logger
+    faraday-net_http (3.4.2)
+      net-http (~> 0.5)
+    ffi (1.17.3-x86_64-darwin)
+    ffi-compiler (1.3.2)
+      ffi (>= 1.15.5)
       rake
-    http (5.1.1)
+    http (5.3.1)
       addressable (~> 2.8)
       http-cookie (~> 1.0)
       http-form_data (~> 2.2)
-      llhttp-ffi (~> 0.4.0)
-    http-cookie (1.0.5)
+      llhttp-ffi (~> 0.5.0)
+    http-cookie (1.1.0)
       domain_name (~> 0.5)
     http-form_data (2.3.0)
-    ld-eventsource (2.2.1)
+    json (2.19.2)
+    ld-eventsource (2.5.1)
       concurrent-ruby (~> 1.0)
       http (>= 4.4.1, < 6.0.0)
-    llhttp-ffi (0.4.0)
+    llhttp-ffi (0.5.1)
       ffi-compiler (~> 1.0)
       rake (~> 13.0)
+    logger (1.7.0)
     murmurhash3 (0.1.7)
     mustermann (2.0.2)
       ruby2_keywords (~> 0.0.1)
-    public_suffix (5.0.1)
+    net-http (0.9.1)
+      uri (>= 0.11.1)
+    public_suffix (7.0.5)
     rack (2.2.6.4)
     rack-protection (2.2.3)
       rack
-    rake (13.0.6)
+    rake (13.3.1)
+    redis (5.4.1)
+      redis-client (>= 0.22.0)
+    redis-client (0.28.0)
+      connection_pool
     ruby2_keywords (0.0.5)
     sem_version (2.0.1)
     shotgun (0.9.2)
@@ -64,23 +72,23 @@ GEM
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
     tilt (2.1.0)
-    unf (0.1.4)
-      unf_ext
-    unf_ext (0.0.8.2)
+    uri (1.1.1)
 
 PLATFORMS
   x86_64-darwin-21
+  x86_64-darwin-24
   x86_64-linux
 
 DEPENDENCIES
   featurehub-sdk!
   rack
+  redis
   shotgun
   sinatra
   thin
 
 RUBY VERSION
-   ruby 2.7.6p219
+   ruby 3.3.10p183
 
 BUNDLED WITH
    2.3.15

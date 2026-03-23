@@ -120,14 +120,16 @@ module FeatureHub
         when 236
           stopped_task
           success(resp)
-        when 404 # no such key
+        when 404, 400 # no such key
           @repository.notify("failed", nil, "polling")
           cancel_task
           @logger.error("featurehub: key does not exist, stopping polling")
         when 503 # dacha busy
           @logger.debug("featurehub: dacha is busy, trying again")
         else
-          @logger.debug("featurehub: unknown error #{resp.status}")
+          if resp.status != 304
+            @logger.debug("featurehub: unknown error #{resp.status}")
+          end
         end
       end
 

@@ -8,13 +8,14 @@ module FeatureHub
     class FeatureHubRepository < InternalFeatureRepository
       attr_reader :features
 
-      def initialize(apply_features = nil)
+      def initialize(apply_features = nil, logger = nil)
         super()
         @strategy_matcher = apply_features || FeatureHub::Sdk::Impl::ApplyFeature.new
         @interceptors = []
         @raw_listeners = []
         @features = {}
         @ready = false
+        @logger = logger || Sdk.default_logger
       end
 
       def apply(strategies, key, feature_id, context)
@@ -34,18 +35,27 @@ module FeatureHub
         case status.to_sym
         when :features
           update_features(data)
+          unless @ready
+            @logger.debug("[featurehubsdk] became ready through updates from #{source}")
+          end
           @ready = true
           notify_raw_listeners_async { |l| l.process_updates(data, source) }
+          @logger.debug("[featurehubsdk] full updates from #{source} are #{data}")
         when :feature
           return if data.nil? || data["key"].nil?
           update_feature(data)
+          unless @ready
+            @logger.debug("[featurehubsdk] became ready through updates from #{source}")
+          end
           @ready = true
           notify_raw_listeners_async { |l| l.process_update(data, source) }
+          @logger.debug("[featurehubsdk] single feature update from #{source} are #{data}")
         when :delete_feature
           return unless data && data["key"]
 
           delete_feature(data)
           notify_raw_listeners_async { |l| l.delete_feature(data, source) }
+          @logger.debug("[featurehubsdk] delete from #{source} are #{data}")
         end
       end
 
