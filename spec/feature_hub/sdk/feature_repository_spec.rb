@@ -205,6 +205,58 @@ RSpec.describe FeatureHub::Sdk::FeatureHubRepository do
     end
   end
 
+  describe "#value" do
+    let(:repo) { FeatureHub::Sdk::FeatureHubRepository.new }
+
+    before do
+      repo.notify("features", [
+                    { "id" => "abc", "key" => "MY_STRING", "version" => 1,
+                      "type" => "STRING", "value" => "hello", "l" => false },
+                    { "id" => "def", "key" => "MY_FLAG", "version" => 1,
+                      "type" => "BOOLEAN", "value" => true, "l" => false },
+                    { "id" => "ghi", "key" => "COLOR", "version" => 1,
+                      "type" => "STRING", "value" => "red", "l" => false,
+                      "strategies" => [{ "id" => "s1", "value" => "blue",
+                                         "attributes" => [{ "conditional" => "EQUALS",
+                                                            "fieldName" => "country",
+                                                            "values" => ["nz"],
+                                                            "type" => "STRING" }] }] }
+                  ])
+    end
+
+    it "returns the feature value when the feature is present" do
+      expect(repo.value("MY_STRING")).to eq("hello")
+    end
+
+    it "returns a boolean feature value" do
+      expect(repo.value("MY_FLAG")).to eq(true)
+    end
+
+    it "returns nil when the feature does not exist and no default is given" do
+      expect(repo.value("UNKNOWN")).to be_nil
+    end
+
+    it "returns the default value when the feature does not exist" do
+      expect(repo.value("UNKNOWN", "fallback")).to eq("fallback")
+    end
+
+    it "returns the feature value even when a default is provided and the feature is present" do
+      expect(repo.value("MY_STRING", "fallback")).to eq("hello")
+    end
+
+    it "returns the matched strategy value when attrs match" do
+      expect(repo.value("COLOR", nil, { country: "nz" })).to eq("blue")
+    end
+
+    it "returns the default feature value when attrs do not match any strategy" do
+      expect(repo.value("COLOR", nil, { country: "au" })).to eq("red")
+    end
+
+    it "returns the caller default when feature is absent and attrs are provided" do
+      expect(repo.value("UNKNOWN", "default", { country: "nz" })).to eq("default")
+    end
+  end
+
   describe "RawUpdateFeatureListener" do
     let(:repo) { FeatureHub::Sdk::FeatureHubRepository.new }
     let(:listener) { instance_double(FeatureHub::Sdk::RawUpdateFeatureListener) }

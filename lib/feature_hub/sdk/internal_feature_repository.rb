@@ -8,6 +8,10 @@ module FeatureHub
         nil
       end
 
+      def value(_key, _default_value = nil, _attrs = nil)
+        _default_value
+      end
+
       def find_interceptor(_feature_key, _feature_state = nil)
         [false, nil]
       end

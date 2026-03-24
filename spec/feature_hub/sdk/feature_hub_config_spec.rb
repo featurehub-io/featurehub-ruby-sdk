@@ -171,6 +171,27 @@ RSpec.describe FeatureHub::Sdk::FeatureHubConfig do
     expect(context).to be_a FeatureHub::Sdk::ClientEvalFeatureContext
   end
 
+  describe "#value" do
+    let(:repo) { instance_double(FeatureHub::Sdk::InternalFeatureRepository) }
+    let(:config) { FeatureHub::Sdk::FeatureHubConfig.new("http://localhost", ["abc123"], repo) }
+
+    it "delegates to the repository and returns the feature value when present" do
+      expect(repo).to receive(:value).with("MY_FLAG", nil, nil).and_return(true)
+      expect(config.value("MY_FLAG")).to eq(true)
+    end
+
+    it "delegates the default value to the repository" do
+      expect(repo).to receive(:value).with("MY_FLAG", false, nil).and_return(false)
+      expect(config.value("MY_FLAG", false)).to eq(false)
+    end
+
+    it "delegates attrs to the repository" do
+      attrs = { country: "nz" }
+      expect(repo).to receive(:value).with("MY_FLAG", nil, attrs).and_return("blue")
+      expect(config.value("MY_FLAG", nil, attrs)).to eq("blue")
+    end
+  end
+
   it "should close the previous edge service when swapping" do
     edge1 = instance_double(FeatureHub::Sdk::EdgeService)
     edge2 = instance_double(FeatureHub::Sdk::EdgeService)
