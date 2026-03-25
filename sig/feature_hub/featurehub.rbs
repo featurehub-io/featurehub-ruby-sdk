@@ -125,7 +125,7 @@ module FeatureHub
     end
 
     class LocalYamlValueInterceptor < ValueInterceptor
-      def initialize: (?String? filename, ?watch: bool, ?watch_interval: Integer) -> void
+      def initialize: (?{ filename: String?, watch: bool?, watch_interval: Integer?, logger: untyped }? opts) -> void
     end
 
     class EnvironmentInterceptor < ValueInterceptor
@@ -152,7 +152,7 @@ module FeatureHub
     class RedisSessionStore < RawUpdateFeatureListener
       SOURCE: String
 
-      def initialize: (connection_string: String, repository: FeatureHubRepository, ?opts: { namespace: Integer, prefix: String, timeout: Integer, password: String }) -> void
+      def initialize: (connection_string: String, repository: FeatureHubRepository, ?opts: { namespace: Integer?, prefix: String?, timeout: Integer?, password: String?, logger: untyped }?) -> void
     end
 
     class PercentageCalculator

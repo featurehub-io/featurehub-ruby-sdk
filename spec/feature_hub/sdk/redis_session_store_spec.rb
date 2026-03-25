@@ -23,8 +23,8 @@ RSpec.describe FeatureHub::Sdk::RedisSessionStore do
 
   let(:logger) { instance_double(Logger, debug: nil) }
 
-  def build(options = nil, log = nil)
-    described_class.new("redis://localhost:6379", repo, options, log)
+  def build(options = nil)
+    described_class.new("redis://localhost:6379", repo, options)
   end
 
   def empty_redis
@@ -85,12 +85,12 @@ RSpec.describe FeatureHub::Sdk::RedisSessionStore do
       it "logs a debug message with the feature count" do
         allow(repo).to receive(:notify)
         expect(logger).to receive(:debug).with("[featurehubsdk] loading 1 feature(s) from redis")
-        build(nil, logger)
+        build({ logger: logger })
       end
 
       it "accepts a custom logger" do
         allow(repo).to receive(:notify)
-        expect { build(nil, logger) }.not_to raise_error
+        expect { build({ logger: logger }) }.not_to raise_error
       end
     end
 

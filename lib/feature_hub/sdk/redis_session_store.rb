@@ -25,7 +25,7 @@ module FeatureHub
     class RedisSessionStore < RawUpdateFeatureListener
       SOURCE = "redis-store"
 
-      def initialize(connection_string, repository, opts = nil, logger = nil)
+      def initialize(connection_string, repository, opts = nil)
         super()
 
         opts ||= {}
@@ -34,7 +34,7 @@ module FeatureHub
         @timeout = opts[:timeout] || 30
         @namespace = opts[:namespace] || 0
         @password = opts[:password]
-        @logger = logger || Sdk.default_logger
+        @logger = opts[:logger] || Sdk.default_logger
         @task = nil
 
         return unless redis_available?
