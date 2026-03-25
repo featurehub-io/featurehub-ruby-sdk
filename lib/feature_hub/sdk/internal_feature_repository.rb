@@ -8,6 +8,10 @@ module FeatureHub
         nil
       end
 
+      def value(_key, default_value = nil, _attrs = nil)
+        default_value
+      end
+
       def find_interceptor(_feature_key, _feature_state = nil)
         [false, nil]
       end
@@ -22,7 +26,7 @@ module FeatureHub
         Applied.new(false, nil)
       end
 
-      def notify(status, data); end
+      def notify(status, data, source = "unknown"); end
     end
   end
 end

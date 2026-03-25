@@ -1,0 +1,7 @@
+/examples/rails_example
+/.github
+/bin
+/featurehub-sdk
+/spec
+/sig
+/*.md

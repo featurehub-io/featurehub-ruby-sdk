@@ -90,7 +90,7 @@ RSpec.describe FeatureHub::Sdk::PollingEdgeService do
 
     it "should cancel on a 404" do
       expect(resp).to receive(:status).and_return(404)
-      expect(repo).to receive(:notify).with("failed", nil)
+      expect(repo).to receive(:notify).with("failed", nil, "polling")
       expect(logger).to receive(:error)
       expect(timer).to receive(:shutdown)
       poller.poll
@@ -153,7 +153,7 @@ RSpec.describe FeatureHub::Sdk::PollingEdgeService do
 
         it "and have environments" do
           expect(resp).to receive(:body).and_return('[{"features": []}, {"features": []}]')
-          expect(repo).to receive(:notify).with("features", []).twice
+          expect(repo).to receive(:notify).with("features", [], "polling").twice
           poller.poll
         end
       end

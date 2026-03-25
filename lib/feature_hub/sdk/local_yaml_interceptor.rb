@@ -14,16 +14,20 @@ module FeatureHub
     #     MY_FLAG: true
     #     MY_STRING: "hello"
     class LocalYamlValueInterceptor < ValueInterceptor
-      def initialize(filename = nil, watch: false, watch_interval: 5)
+      def initialize(opts = nil)
         super()
-        @yaml_file = filename || ENV.fetch("FEATUREHUB_LOCAL_YAML", "featurehub-features.yaml")
+        opts ||= {}
+        @yaml_file = opts[:filename] || ENV.fetch("FEATUREHUB_LOCAL_YAML", "featurehub-features.yaml")
+        @logger = opts[:logger] || Sdk.default_logger
         @mutex = Mutex.new
         @flag_values = load_flag_values(@yaml_file)
+        @logger.debug("[featurehubsdk] loaded #{@flag_values.size} feature override(s) from #{@yaml_file}")
         @watcher = nil
 
-        return unless watch
+        return unless opts[:watch]
 
         @last_mtime = File.exist?(@yaml_file) ? File.mtime(@yaml_file) : nil
+        watch_interval = opts[:watch_interval] || 5
         @watcher = Concurrent::TimerTask.new(execution_interval: watch_interval, run_now: false) do
           reload_if_changed
         end
@@ -59,6 +63,7 @@ module FeatureHub
 
         @last_mtime = current_mtime
         new_values = load_flag_values(@yaml_file)
+        @logger.debug("[featurehubsdk] reloaded #{new_values.size} feature override(s) from #{@yaml_file}")
         @mutex.synchronize { @flag_values = new_values }
       end
 

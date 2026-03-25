@@ -1,42 +1,31 @@
-FROM ruby:2.7-bullseye
+FROM ruby:3.3.10-bookworm
 
 MAINTAINER info@featurehub.io
 ENV BUNDLER_VERSION 2.3.15
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt update && \
-    apt install -y gnupg
-
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y wget tzdata apt-transport-https && \
-    apt-get remove -y mysql-common
-
-# set up nsswitch
-COPY conf/nsswitch.conf /etc/nsswitch.conf
-
-RUN echo 'gem: --no-document' >> ~/.gemrc && \
-    gem update --system 3.0.6 && \
-    gem install bundler -v ${BUNDLER_VERSION}  --force
-
-RUN echo "deb https://oss-binaries.phusionpassenger.com/apt/passenger bullseye main" > /etc/apt/sources.list.d/passenger.list
-
-RUN apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db 561F9B9CAC40B2F7 && \
-    apt-get update && \
-    apt-get install -y libnginx-mod-http-passenger=1:6.0.13-1~bullseye1 \
-    passenger=1:6.0.13-1~bullseye1 nginx && \
-    apt-get clean -y && \
-    rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
-# set up passenger
+    apt install -y gnupg wget tzdata apt-transport-https dirmngr gnupg curl && \
+    curl https://oss-binaries.phusionpassenger.com/auto-software-signing-gpg-key-2025.txt | gpg --dearmor | tee /etc/apt/trusted.gpg.d/phusion.gpg >/dev/null && \
+        sh -c 'echo deb https://oss-binaries.phusionpassenger.com/apt/passenger bookworm main > /etc/apt/sources.list.d/passenger.list' && \
+        apt-get update && \
+        apt-get install -y nginx passenger
 
 #ENV BUNDLE_PATH /bundle
 RUN passenger-config build-native-support
-RUN gem update --system
+
+RUN echo 'gem: --no-document' >> ~/.gemrc && \
+    gem update --system && \
+    gem install bundler -v ${BUNDLER_VERSION}  --force
+
+# set up nsswitch
+COPY examples/sinatra/conf/nsswitch.conf /etc/nsswitch.conf
+
 RUN mkdir -p /app/featurehub
-COPY conf/nginx.conf /etc/nginx/nginx.conf
-COPY Gemfile Gemfile.lock /app/featurehub/
+COPY examples/sinatra/conf/nginx.conf /etc/nginx/nginx.conf
+COPY . /app/
 WORKDIR /app/featurehub
 RUN cd /app/featurehub && bundle install
-ADD . /app/featurehub
+ADD examples/sinatra/ /app/featurehub
 
 CMD /usr/sbin/nginx -g \'daemon off;\'

@@ -1,0 +1,24 @@
+services:
+  party-server:
+    image: featurehub/party-server:1.9.4
+    ports:
+      - 8085:8085
+    user: 999:999
+    # allow us to restart the server causing the client to lose connectivity
+    # but when we start it again its OK
+    volumes:
+      - featurehub-h2-data:/db
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+  ruby-sinatra:
+    image: ruby-sinatra:latest
+    ports:
+      - 8099:8099
+    environment:
+      FEATUREHUB_EDGE_URL: http://party-server:8085
+      FEATUREHUB_BASE_URL: http://party-server:8085
+      FEATUREHUB_REDIS_STORE: redis
+volumes:
+  featurehub-h2-data:

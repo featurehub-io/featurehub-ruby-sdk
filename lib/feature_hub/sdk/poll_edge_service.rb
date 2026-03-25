@@ -10,17 +10,12 @@ module FeatureHub
   module Sdk
     # uses a periodic polling mechanism to get updates
     class PollingEdgeService < EdgeService
-      attr_reader :repository, :api_keys, :edge_url, :interval, :stopped, :etag, :cancel, :sha_context
+      attr_reader :api_keys, :edge_url, :interval, :stopped, :etag, :cancel, :sha_context
 
       def initialize(repository, api_keys, edge_url, interval, logger = nil)
-        super(repository, api_keys, edge_url)
+        super(repository, api_keys, edge_url, logger || FeatureHub::Sdk.default_logger)
 
-        @repository = repository
-        @api_keys = api_keys
-        @edge_url = edge_url
         @interval = interval
-
-        @logger = logger || FeatureHub::Sdk.default_logger
 
         @task = nil
         @cancel = false
@@ -120,14 +115,14 @@ module FeatureHub
         when 236
           stopped_task
           success(resp)
-        when 404 # no such key
-          @repository.notify("failed", nil)
+        when 404, 400 # no such key
+          @repository.notify("failed", nil, "polling")
           cancel_task
           @logger.error("featurehub: key does not exist, stopping polling")
         when 503 # dacha busy
           @logger.debug("featurehub: dacha is busy, trying again")
         else
-          @logger.debug("featurehub: unknown error #{resp.status}")
+          @logger.debug("featurehub: unknown error #{resp.status}") if resp.status != 304
         end
       end
 
@@ -143,7 +138,7 @@ module FeatureHub
 
       def process_results(data)
         data.each do |environment|
-          @repository.notify("features", environment["features"]) if environment
+          @repository.notify("features", environment["features"], "polling") if environment
         end
       end
 

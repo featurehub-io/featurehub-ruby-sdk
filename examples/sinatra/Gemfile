@@ -2,13 +2,14 @@
 
 source "https://rubygems.org"
 
-ruby "2.7.6"
+ruby "3.3.10"
 
+gem "featurehub-sdk", path: "../.."
 gem "rack"
+gem "redis"
 gem "sinatra"
-# gem "featurehub-sdk", path: "../../"
-gem "featurehub-sdk", git: "https://github.com/featurehub-io/featurehub-ruby-sdk.git",
-                      glob: "featurehub-sdk/*.gemspec"
+# gem "featurehub-sdk", git: "https://github.com/featurehub-io/featurehub-ruby-sdk.git",
+#                       glob: "featurehub-sdk/*.gemspec"
 
 group :development do
   gem "shotgun"

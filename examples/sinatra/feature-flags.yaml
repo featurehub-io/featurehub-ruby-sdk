@@ -1,0 +1,6 @@
+flagValues:
+  FEATURE_STRING: buy
+  FEATURE_NUMBER: 26
+  FEATURE_JSON:
+    some: number
+  FEATURE_TITLE_TO_UPPERCASE: false

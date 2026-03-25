@@ -17,9 +17,19 @@ module FeatureHub
     class ClientContext
       attr_reader :repo
 
-      def initialize(repo)
+      WELL_KNOWN_KEY_METHODS = {
+        ContextKeys::USERKEY => :user_key,
+        ContextKeys::SESSION => :session_key,
+        ContextKeys::COUNTRY => :country,
+        ContextKeys::PLATFORM => :platform,
+        ContextKeys::DEVICE => :device,
+        ContextKeys::VERSION => :version
+      }.freeze
+
+      def initialize(repo, attrs = nil)
         @repo = repo
         @attributes = {}
+        assign(attrs) if attrs
       end
 
       def user_key(value)
@@ -54,7 +64,9 @@ module FeatureHub
 
       # this takes an array parameter
       def attribute_value(key, values)
-        if values.empty?
+        return self if key.nil? || key.to_s.empty?
+
+        if values.nil? || values.empty?
           @attributes.delete(key.to_sym)
         else
           @attributes[key.to_sym] = if values.is_a?(Array)
@@ -64,6 +76,19 @@ module FeatureHub
                                     end
         end
 
+        self
+      end
+
+      def assign(attrs)
+        attrs.each do |key, value|
+          sym_key = key.to_sym
+          method_name = WELL_KNOWN_KEY_METHODS[sym_key]
+          if method_name
+            send(method_name, value)
+          else
+            attribute_value(sym_key, value)
+          end
+        end
         self
       end
 
@@ -90,7 +115,7 @@ module FeatureHub
       end
 
       def feature(key)
-        @repo.feature(key)
+        @repo.feature(key).with_context(self)
       end
 
       def set?(key)
@@ -152,10 +177,6 @@ module FeatureHub
 
       def build_sync
         self
-      end
-
-      def feature(key)
-        @repo.feature(key).with_context(self)
       end
     end
 

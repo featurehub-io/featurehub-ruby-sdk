@@ -4,12 +4,14 @@ require "tempfile"
 require "yaml"
 
 RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
-  def with_yaml_file(content)
+  let(:logger) { instance_double(Logger, debug: nil) }
+
+  def with_yaml_file(content, opts = nil)
     file = Tempfile.new(["featurehub-features", ".yaml"])
     file.write(content)
     file.close
     allow(ENV).to receive(:fetch).with("FEATUREHUB_LOCAL_YAML", "featurehub-features.yaml").and_return(file.path)
-    yield FeatureHub::Sdk::LocalYamlValueInterceptor.new
+    yield FeatureHub::Sdk::LocalYamlValueInterceptor.new(opts)
   ensure
     file.unlink
   end
@@ -79,11 +81,11 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
     end
   end
 
-  it "accepts an explicit filename" do
+  it "accepts an explicit filename via opts" do
     file = Tempfile.new(["explicit", ".yaml"])
     file.write("flagValues:\n  MY_FLAG: true\n")
     file.close
-    interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(file.path)
+    interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: file.path)
     matched, value = interceptor.intercepted_value(:MY_FLAG, nil, nil)
     expect(matched).to eq(true)
     expect(value).to eq(true)
@@ -99,12 +101,29 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
     end
   end
 
+  describe "logging" do
+    it "logs the feature count on initial load" do
+      file = Tempfile.new(["featurehub-features", ".yaml"])
+      file.write("flagValues:\n  MY_FLAG: true\n  OTHER: false\n")
+      file.close
+      expect(logger).to receive(:debug).with("[featurehubsdk] loaded 2 feature override(s) from #{file.path}")
+      FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: file.path, logger: logger)
+    ensure
+      file.unlink
+    end
+
+    it "logs zero overrides when the file does not exist" do
+      expect(logger).to receive(:debug).with("[featurehubsdk] loaded 0 feature override(s) from /nonexistent.yaml")
+      FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: "/nonexistent.yaml", logger: logger)
+    end
+  end
+
   describe "file watching" do
     it "does not start a watcher by default" do
       file = Tempfile.new(["featurehub-features", ".yaml"])
       file.write("flagValues:\n  MY_FLAG: true\n")
       file.close
-      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(file.path)
+      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: file.path)
       expect(interceptor.instance_variable_get(:@watcher)).to be_nil
     ensure
       file.unlink
@@ -115,7 +134,8 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
       file.write("flagValues:\n  MY_FLAG: true\n")
       file.close
 
-      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(file.path, watch: true, watch_interval: 0.1)
+      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: file.path, watch: true,
+                                                                   watch_interval: 0.1)
 
       expect(interceptor.intercepted_value(:MY_FLAG, nil, nil)).to eq([true, true])
 
@@ -130,12 +150,34 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
       file.unlink
     end
 
+    it "logs a message when the file is reloaded after a change" do
+      file = Tempfile.new(["featurehub-features", ".yaml"])
+      file.write("flagValues:\n  MY_FLAG: true\n")
+      file.close
+
+      allow(logger).to receive(:debug)
+      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: file.path, watch: true,
+                                                                   watch_interval: 0.1, logger: logger)
+
+      sleep(1.1)
+      File.write(file.path, "flagValues:\n  MY_FLAG: false\n")
+      sleep(0.3)
+
+      expect(logger).to have_received(:debug).with(
+        "[featurehubsdk] reloaded 1 feature override(s) from #{file.path}"
+      )
+    ensure
+      interceptor&.close
+      file.unlink
+    end
+
     it "picks up new keys added to the file" do
       file = Tempfile.new(["featurehub-features", ".yaml"])
       file.write("flagValues:\n  MY_FLAG: true\n")
       file.close
 
-      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(file.path, watch: true, watch_interval: 0.1)
+      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: file.path, watch: true,
+                                                                   watch_interval: 0.1)
 
       expect(interceptor.intercepted_value(:NEW_KEY, nil, nil)).to eq([false, nil])
 
@@ -154,7 +196,8 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
       file.write("flagValues:\n  MY_FLAG: true\n")
       file.close
 
-      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(file.path, watch: true, watch_interval: 0.1)
+      interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: file.path, watch: true,
+                                                                   watch_interval: 0.1)
       interceptor.close
 
       expect(interceptor.instance_variable_get(:@watcher)).to be_nil
