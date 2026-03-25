@@ -3,7 +3,7 @@
 require "tempfile"
 require "yaml"
 
-RSpec.describe FeatureHub::Sdk::LocalYamlStorage do
+RSpec.describe FeatureHub::Sdk::LocalYamlStore do
   let(:repo) { instance_double(FeatureHub::Sdk::FeatureHubRepository) }
 
   def with_yaml_file(content)
@@ -16,7 +16,7 @@ RSpec.describe FeatureHub::Sdk::LocalYamlStorage do
   end
 
   def build(filename)
-    FeatureHub::Sdk::LocalYamlStorage.new(repo, filename)
+    FeatureHub::Sdk::LocalYamlStore.new(repo, filename)
   end
 
   describe "when file does not exist" do
@@ -42,7 +42,7 @@ RSpec.describe FeatureHub::Sdk::LocalYamlStorage do
       with_yaml_file("flagValues:\n  FLAG: true\n") do |path|
         allow(ENV).to receive(:fetch).with("FEATUREHUB_LOCAL_YAML", "featurehub-features.yaml").and_return(path)
         expect(repo).to receive(:notify).with("features", anything, "local-yaml")
-        FeatureHub::Sdk::LocalYamlStorage.new(repo)
+        FeatureHub::Sdk::LocalYamlStore.new(repo)
       end
     end
 

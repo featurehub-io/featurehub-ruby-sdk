@@ -25,7 +25,7 @@ module FeatureHub
     class RedisSessionStore < RawUpdateFeatureListener
       SOURCE = "redis-store"
 
-      def initialize(connection_string, repository, opts = nil)
+      def initialize(connection_string, repository, opts = nil, logger = nil)
         super()
 
         opts ||= {}
@@ -34,6 +34,7 @@ module FeatureHub
         @timeout = opts[:timeout] || 30
         @namespace = opts[:namespace] || 0
         @password = opts[:password]
+        @logger = logger || Sdk.default_logger
         @task = nil
 
         return unless redis_available?
@@ -91,7 +92,10 @@ module FeatureHub
           JSON.parse(json) if json
         end
 
-        @repository.notify("features", features, SOURCE) unless features.empty?
+        return if features.empty?
+
+        @logger.debug("[featurehubsdk] loading #{features.size} feature(s) from redis")
+        @repository.notify("features", features, SOURCE)
       end
 
       def start_timer

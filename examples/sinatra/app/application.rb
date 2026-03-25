@@ -16,7 +16,7 @@ def configure_featurehub
   end
 
   if ENV['FEATUREHUB_LOCAL_YAML']
-    config.register_raw_update_listener(FeatureHub::Sdk::LocalYamlStorage.new(repo))
+    config.register_raw_update_listener(FeatureHub::Sdk::LocalYamlStore.new(repo))
     config.register_interceptor(FeatureHub::Sdk::LocalYamlValueInterceptor.new(watch: true))
   end
 

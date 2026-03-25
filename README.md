@@ -180,6 +180,21 @@ config.repository.feature("SUBMIT_COLOR_BUTTON", { country: "nz", userkey: "u1" 
 
 This creates a temporary `ClientContext` internally and evaluates the feature through it.
 
+#### `value` — get a raw value with a default
+
+`value(key, default_value = nil, attrs = nil)` returns the feature's value directly, or `default_value` if the feature does not exist:
+
+```ruby
+# Simple lookup with a fallback
+color = config.value("SUBMIT_COLOR_BUTTON", "blue")
+
+# With inline attributes for strategy evaluation
+color = config.value("SUBMIT_COLOR_BUTTON", "blue", { country: "nz" })
+
+# Also available on the repository directly
+color = config.repository.value("SUBMIT_COLOR_BUTTON", "blue")
+```
+
 #### Feature value accessors
 
 | Method | Returns |
@@ -192,6 +207,7 @@ This creates a temporary `ClientContext` internally and evaluates the feature th
 | `.enabled?` | `bool` (true if flag is on) |
 | `.set?` | `bool` (true if a value has been set) |
 | `.exists?` | `bool` (true if the feature exists in the repository) |
+| `.present?` | `bool` (alias for `exists?`) |
 
 ## Feature interceptors
 
@@ -223,23 +239,33 @@ flagValues:
   MAX_RETRIES: 3
 ```
 
+All options are passed as a single hash:
+
 ```ruby
+# Default file path (featurehub-features.yaml or FEATUREHUB_LOCAL_YAML env var)
+config.repository.register_interceptor(FeatureHub::Sdk::LocalYamlValueInterceptor.new)
+
+# Explicit file path
 config.repository.register_interceptor(
-  FeatureHub::Sdk::LocalYamlValueInterceptor.new
-  # OR specify a file explicitly:
-  # FeatureHub::Sdk::LocalYamlValueInterceptor.new("path/to/overrides.yaml")
+  FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: "path/to/overrides.yaml")
+)
+
+# Watch for file changes and reload automatically
+config.repository.register_interceptor(
+  FeatureHub::Sdk::LocalYamlValueInterceptor.new(watch: true, watch_interval: 5)
+)
+
+# With a custom logger
+config.repository.register_interceptor(
+  FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: "overrides.yaml", logger: my_logger)
 )
 ```
 
-The file path defaults to `featurehub-overrides.yaml` in the current directory, or can be set via `FEATUREHUB_LOCAL_YAML`. Pass `watch: true` to automatically reload the file on changes:
+Supported options: `:filename`, `:watch` (default: `false`), `:watch_interval` (seconds, default: `5`), `:logger`.
 
-```ruby
-FeatureHub::Sdk::LocalYamlValueInterceptor.new(watch: true, watch_interval: 5)
-```
+## Offline / local-only mode with LocalYamlStore
 
-## Offline / local-only mode with LocalYamlStorage
-
-`LocalYamlStorage` loads features from a YAML file directly into the repository, with no Edge connection required. It uses the same file format as `LocalYamlValueInterceptor`. This is useful for tests, CI environments, or services that manage their own feature state.
+`LocalYamlStore` loads features from a YAML file directly into the repository, with no Edge connection required. It uses the same file format as `LocalYamlValueInterceptor`. This is useful for tests, CI environments, or services that manage their own feature state.
 
 ```yaml
 # features.yaml
@@ -254,12 +280,15 @@ flagValues:
 
 ```ruby
 repository = FeatureHub::Sdk::FeatureHubRepository.new
-store = FeatureHub::Sdk::LocalYamlStorage.new(repository)
-# OR specify a file:
-store = FeatureHub::Sdk::LocalYamlStorage.new(repository, filename: "features.yaml")
-# OR via env var FEATUREHUB_LOCAL_YAML
 
-repository.feature("MY_FLAG").flag  # => true
+# Default file path (featurehub-features.yaml or FEATUREHUB_LOCAL_YAML env var)
+store = FeatureHub::Sdk::LocalYamlStore.new(repository)
+
+# Explicit file path
+store = FeatureHub::Sdk::LocalYamlStore.new(repository, filename: "features.yaml")
+
+repository.feature("MY_FLAG").flag        # => true
+repository.value("SUBMIT_COLOR_BUTTON")   # => "green"
 ```
 
 The file path defaults to `featurehub-overrides.yaml` or the `FEATUREHUB_LOCAL_YAML` environment variable. Complex values (hashes, arrays) are serialised to a JSON string and stored as a `JSON` feature type.
@@ -279,7 +308,8 @@ store = FeatureHub::Sdk::RedisSessionStore.new(
     prefix:    "myapp",       # Redis key prefix (default: "featurehub")
     namespace: 0,             # Redis DB index (default: 0)
     timeout:   60,            # Seconds between periodic reloads (default: 30)
-    password:  "secret"       # Optional Redis password
+    password:  "secret",      # Optional Redis password
+    logger:    my_logger      # Optional logger (default: SDK default logger)
   }
 )
 

@@ -16,7 +16,7 @@ module FeatureHub
     #     MY_FLAG: true
     #     MY_STRING: "hello"
     #     MY_NUMBER: 42
-    class LocalYamlStorage < RawUpdateFeatureListener
+    class LocalYamlStore < RawUpdateFeatureListener
       SOURCE = "local-yaml"
 
       def initialize(repository, filename = nil)
