@@ -144,7 +144,10 @@ RSpec.describe FeatureHub::Sdk::RedisSessionStore do
   end
 
   describe "#process_updates" do
-    let(:store) { (empty_redis; build) }
+    let(:store) do
+      empty_redis
+      build
+    end
 
     it "stores each feature in Redis when source is not redis-store" do
       expect(redis).to receive(:get).with("#{prefix}_abc-123").and_return(nil)
@@ -170,7 +173,10 @@ RSpec.describe FeatureHub::Sdk::RedisSessionStore do
   end
 
   describe "#process_update" do
-    let(:store) { (empty_redis; build) }
+    let(:store) do
+      empty_redis
+      build
+    end
 
     it "stores the feature in Redis when source is not redis-store" do
       expect(redis).to receive(:get).with("#{prefix}_abc-123").and_return(nil)
@@ -207,7 +213,10 @@ RSpec.describe FeatureHub::Sdk::RedisSessionStore do
   end
 
   describe "#delete_feature" do
-    let(:store) { (empty_redis; build) }
+    let(:store) do
+      empty_redis
+      build
+    end
 
     it "removes the feature from Redis" do
       expect(redis).to receive(:srem).with(ids_key, "abc-123")

@@ -122,9 +122,7 @@ module FeatureHub
         when 503 # dacha busy
           @logger.debug("featurehub: dacha is busy, trying again")
         else
-          if resp.status != 304
-            @logger.debug("featurehub: unknown error #{resp.status}")
-          end
+          @logger.debug("featurehub: unknown error #{resp.status}") if resp.status != 304
         end
       end
 

@@ -35,9 +35,7 @@ module FeatureHub
         case status.to_sym
         when :features
           update_features(data)
-          unless @ready
-            @logger.debug("[featurehubsdk] became ready through updates from #{source}")
-          end
+          @logger.debug("[featurehubsdk] became ready through updates from #{source}") unless @ready
           @ready = true
           notify_raw_listeners_async { |l| l.process_updates(data, source) }
           @logger.debug("[featurehubsdk] full updates from #{source} are #{data}")
@@ -45,9 +43,7 @@ module FeatureHub
           return if data.nil? || data["key"].nil?
 
           update_feature(data)
-          unless @ready
-            @logger.debug("[featurehubsdk] became ready through updates from #{source}")
-          end
+          @logger.debug("[featurehubsdk] became ready through updates from #{source}") unless @ready
           @ready = true
           notify_raw_listeners_async { |l| l.process_update(data, source) }
           @logger.debug("[featurehubsdk] single feature update from #{source} are #{data}")
@@ -127,11 +123,11 @@ module FeatureHub
         end
       end
 
-      def notify_raw_listeners_async
+      def notify_raw_listeners_async(&block)
         return if @raw_listeners.empty?
 
         listeners = @raw_listeners.dup
-        Concurrent::Future.execute { listeners.each { |l| yield l } }
+        Concurrent::Future.execute { listeners.each(&block) }
       end
 
       def update_feature(feature_state)

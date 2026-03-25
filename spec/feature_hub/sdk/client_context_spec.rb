@@ -180,10 +180,10 @@ RSpec.describe FeatureHub::Sdk::ClientContext do
     end
 
     it "merges unknown keys via attribute_value" do
-      @ctx.assign({ flavour: "cumberlands", texture: ["crisp", "hearty"] })
+      @ctx.assign({ flavour: "cumberlands", texture: %w[crisp hearty] })
       aggregate_failures do
         expect(@ctx.get_attr(:flavour)).to eq(["cumberlands"])
-        expect(@ctx.get_attr(:texture)).to eq(["crisp", "hearty"])
+        expect(@ctx.get_attr(:texture)).to eq(%w[crisp hearty])
       end
     end
 

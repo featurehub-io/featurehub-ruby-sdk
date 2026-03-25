@@ -27,7 +27,7 @@ module FeatureHub
     class FeatureHubConfig
       attr_reader :edge_url, :api_keys, :client_evaluated, :logger
 
-      def initialize(edge_url = nil, api_keys = nil, repository = nil, edge_provider = nil, logger = nil)
+      def initialize(edge_url = nil, api_keys = nil, repository = nil, edge_provider = nil, logger = nil) # rubocop:disable Metrics/ParameterLists
         @logger = logger || FeatureHub::Sdk.default_logger
         @repository = repository || FeatureHub::Sdk::FeatureHubRepository.new(nil, @logger)
 
@@ -119,7 +119,7 @@ module FeatureHub
       end
 
       def close
-        if @repository != nil
+        unless @repository.nil?
           @repository.close
           @repository = nil
         end
@@ -152,14 +152,14 @@ module FeatureHub
       end
 
       def resolve_edge_url(edge_url)
-        url = edge_url.nil? || edge_url.strip.empty? ? ENV["FEATUREHUB_EDGE_URL"] : edge_url
+        url = edge_url.nil? || edge_url.strip.empty? ? ENV.fetch("FEATUREHUB_EDGE_URL", nil) : edge_url
         url&.strip&.empty? ? nil : url
       end
 
       def resolve_api_keys(api_keys)
         return api_keys if api_keys.is_a?(Array) && !api_keys.empty?
 
-        [ENV["FEATUREHUB_CLIENT_API_KEY"], ENV["FEATUREHUB_SERVER_API_KEY"]].compact
+        [ENV.fetch("FEATUREHUB_CLIENT_API_KEY", nil), ENV.fetch("FEATUREHUB_SERVER_API_KEY", nil)].compact
       end
 
       def create_null_provider(repo, api_keys, edge_url, logger)

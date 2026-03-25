@@ -11,11 +11,11 @@ def configure_featurehub
   config = FeatureHub::Sdk::FeatureHubConfig.new
   repo = config.repository
 
-  if ENV['FEATUREHUB_REDIS_STORE']
-    config.register_raw_update_listener(FeatureHub::Sdk::RedisSessionStore.new(ENV['FEATUREHUB_REDIS_STORE'], repo))
+  if ENV["FEATUREHUB_REDIS_STORE"]
+    config.register_raw_update_listener(FeatureHub::Sdk::RedisSessionStore.new(ENV["FEATUREHUB_REDIS_STORE"], repo))
   end
 
-  if ENV['FEATUREHUB_LOCAL_YAML']
+  if ENV["FEATUREHUB_LOCAL_YAML"]
     config.register_raw_update_listener(FeatureHub::Sdk::LocalYamlStore.new(repo))
     config.register_interceptor(FeatureHub::Sdk::LocalYamlValueInterceptor.new(watch: true))
   end

@@ -45,9 +45,9 @@ RSpec.describe FeatureHub::Sdk::FeatureHubConfig do
 
   describe "resolving from environment variables" do
     around do |example|
-      orig_url = ENV["FEATUREHUB_EDGE_URL"]
-      orig_client = ENV["FEATUREHUB_CLIENT_API_KEY"]
-      orig_server = ENV["FEATUREHUB_SERVER_API_KEY"]
+      orig_url = ENV.fetch("FEATUREHUB_EDGE_URL", nil)
+      orig_client = ENV.fetch("FEATUREHUB_CLIENT_API_KEY", nil)
+      orig_server = ENV.fetch("FEATUREHUB_SERVER_API_KEY", nil)
       example.run
     ensure
       ENV["FEATUREHUB_EDGE_URL"] = orig_url
