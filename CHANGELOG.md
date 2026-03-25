@@ -1,4 +1,10 @@
-## [1.3.0] - 2024-01-12
+## [2.0.0] - 2026-03-22
+
+- Refactor FeatureState to FeatureStateHolder to be consistent with other SDKs
+- Add FeatureValueType to reduce duplication
+- Add local YAML file interceptor with an optional timer to watch for changes
+
+## [1.3.0] - 2026-01-11
 
 - update gem dependencies
 - bump minimum ruby version to 3.2

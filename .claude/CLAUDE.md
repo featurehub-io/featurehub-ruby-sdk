@@ -19,7 +19,7 @@ bundle exec rspec spec/feature_hub/sdk/feature_hub_config_spec.rb:42
 
 ## Architecture
 
-This is the FeatureHub Ruby SDK (gem: `featurehub-sdk`, version 1.3.0), targeting Ruby >= 3.2. All code lives under `lib/feature_hub/sdk/` and is namespaced as `FeatureHub::Sdk`.
+This is the FeatureHub Ruby SDK (gem: `featurehub-sdk`, version 2.0.0), targeting Ruby >= 3.2. All code lives under `lib/feature_hub/sdk/` and is namespaced as `FeatureHub::Sdk`.
 
 ### Core Data Flow
 
