@@ -125,6 +125,43 @@ RSpec.describe FeatureHub::Sdk::ClientContext do
     end
   end
 
+  describe "#attribute_value" do
+    it "removes the key when passed nil" do
+      @ctx.attribute_value("flavour", "cumberlands")
+      @ctx.attribute_value("flavour", nil)
+      expect(@ctx.get_attr(:flavour)).to eq([])
+    end
+
+    it "removes the key when passed an empty array" do
+      @ctx.attribute_value("flavour", "cumberlands")
+      @ctx.attribute_value("flavour", [])
+      expect(@ctx.get_attr(:flavour)).to eq([])
+    end
+
+    it "treats nil the same as empty — does not set the key if it was never set" do
+      @ctx.attribute_value("flavour", nil)
+      expect(@ctx.get_attr(:flavour)).to eq([])
+    end
+
+    it "returns self for chaining when passed nil" do
+      expect(@ctx.attribute_value("flavour", nil)).to eq(@ctx)
+    end
+
+    it "does nothing when key is nil" do
+      @ctx.attribute_value(nil, "cumberlands")
+      expect(@ctx.instance_variable_get(:@attributes)).to be_empty
+    end
+
+    it "does nothing when key is an empty string" do
+      @ctx.attribute_value("", "cumberlands")
+      expect(@ctx.get_attr("")).to eq([])
+    end
+
+    it "returns self for chaining when key is nil" do
+      expect(@ctx.attribute_value(nil, "cumberlands")).to eq(@ctx)
+    end
+  end
+
   describe "#assign" do
     it "sets well-known keys via their dedicated methods" do
       @ctx.assign({ userkey: "fred", session: "sess1" })

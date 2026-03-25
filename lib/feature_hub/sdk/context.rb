@@ -64,7 +64,9 @@ module FeatureHub
 
       # this takes an array parameter
       def attribute_value(key, values)
-        if values.empty?
+        return self if key.nil? || key.to_s.empty?
+
+        if values.nil? || values.empty?
           @attributes.delete(key.to_sym)
         else
           @attributes[key.to_sym] = if values.is_a?(Array)
