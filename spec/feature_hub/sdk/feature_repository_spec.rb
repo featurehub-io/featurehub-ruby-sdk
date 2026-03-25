@@ -184,12 +184,12 @@ RSpec.describe FeatureHub::Sdk::FeatureHubRepository do
 
     before do
       repo.notify("features", [{ "id" => "abc", "key" => "SUBMIT_COLOR_BUTTON", "version" => 1,
-                                  "type" => "STRING", "value" => "orange", "l" => false,
-                                  "strategies" => [{ "id" => "s1", "value" => "green",
-                                                     "attributes" => [{ "conditional" => "EQUALS",
-                                                                        "fieldName" => "country",
-                                                                        "values" => ["nz"],
-                                                                        "type" => "STRING" }] }] }])
+                                 "type" => "STRING", "value" => "orange", "l" => false,
+                                 "strategies" => [{ "id" => "s1", "value" => "green",
+                                                    "attributes" => [{ "conditional" => "EQUALS",
+                                                                       "fieldName" => "country",
+                                                                       "values" => ["nz"],
+                                                                       "type" => "STRING" }] }] }])
     end
 
     it "returns the default value when attrs do not match any strategy" do

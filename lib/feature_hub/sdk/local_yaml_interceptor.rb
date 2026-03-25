@@ -60,6 +60,7 @@ module FeatureHub
 
         current_mtime = File.mtime(@yaml_file)
         return if current_mtime == @last_mtime
+
         @last_mtime = current_mtime
         new_values = load_flag_values(@yaml_file)
         @logger.debug("[featurehubsdk] reloaded #{new_values.size} feature override(s) from #{@yaml_file}")

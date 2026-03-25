@@ -135,7 +135,7 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
       file.close
 
       interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: file.path, watch: true,
-                                                                    watch_interval: 0.1)
+                                                                   watch_interval: 0.1)
 
       expect(interceptor.intercepted_value(:MY_FLAG, nil, nil)).to eq([true, true])
 
@@ -157,7 +157,7 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
 
       allow(logger).to receive(:debug)
       interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: file.path, watch: true,
-                                                                    watch_interval: 0.1, logger: logger)
+                                                                   watch_interval: 0.1, logger: logger)
 
       sleep(1.1)
       File.write(file.path, "flagValues:\n  MY_FLAG: false\n")
@@ -177,7 +177,7 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
       file.close
 
       interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: file.path, watch: true,
-                                                                    watch_interval: 0.1)
+                                                                   watch_interval: 0.1)
 
       expect(interceptor.intercepted_value(:NEW_KEY, nil, nil)).to eq([false, nil])
 
@@ -197,7 +197,7 @@ RSpec.describe FeatureHub::Sdk::LocalYamlValueInterceptor do
       file.close
 
       interceptor = FeatureHub::Sdk::LocalYamlValueInterceptor.new(filename: file.path, watch: true,
-                                                                    watch_interval: 0.1)
+                                                                   watch_interval: 0.1)
       interceptor.close
 
       expect(interceptor.instance_variable_get(:@watcher)).to be_nil

@@ -43,6 +43,7 @@ module FeatureHub
           @logger.debug("[featurehubsdk] full updates from #{source} are #{data}")
         when :feature
           return if data.nil? || data["key"].nil?
+
           update_feature(data)
           unless @ready
             @logger.debug("[featurehubsdk] became ready through updates from #{source}")
