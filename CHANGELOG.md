@@ -3,6 +3,12 @@
 - Refactor FeatureState to FeatureStateHolder to be consistent with other SDKs
 - Add FeatureValueType to reduce duplication
 - Add local YAML file interceptor with an optional timer to watch for changes
+- Add `RawUpdateFeatureListener` base class so custom listeners can react to raw edge updates (including update source tracking)
+- Add `LocalYamlStore`: load features from a local YAML file without an Edge server, as an alternative to the value interceptor
+- Add `RedisSessionStore`: persist features in Redis so they survive process restarts and are shared across processes (client-evaluated only)
+- Support punch-through context evaluation for external stores so per-request context attributes are applied even when features come from Redis or YAML
+- Add `value` accessor to `FeatureStateHolder` as a convenience shortcut alongside the typed accessors
+- Edge services now explicitly close the repository on shutdown
 
 ## [1.3.0] - 2026-01-11
 
