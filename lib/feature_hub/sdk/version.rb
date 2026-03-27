@@ -3,15 +3,6 @@
 module FeatureHub
   # already documented elsewhere
   module Sdk
-    VERSION = "2.0.0"
-
-    def default_logger
-      log = ::Logger.new($stdout)
-      log.level = ::Logger::DEBUG
-      log.progname = "featurehub-sdk"
-      log
-    end
-
-    module_function :default_logger
+    VERSION = "2.0.1"
   end
 end

@@ -10,7 +10,7 @@ module FeatureHub
       attr_reader :sse_client, :url, :stopped
 
       def initialize(repository, api_keys, edge_url, logger = nil)
-        super(repository, api_keys, edge_url, logger || FeatureHub::Sdk.default_logger)
+        super(repository, api_keys, edge_url, logger)
 
         @url = "#{edge_url}features/#{api_keys[0]}"
         @sse_client = nil
@@ -56,7 +56,7 @@ module FeatureHub
       end
 
       def start_streaming
-        @logger.debug("streaming from #{@url}")
+        @logger&.debug("streaming from #{@url}")
         # we can get an error before returning the new() function and get a race condition on the close
         must_close = false
         @sse_client = SSE::Client.new(@url) do |client|

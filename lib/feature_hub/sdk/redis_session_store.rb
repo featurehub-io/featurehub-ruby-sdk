@@ -34,7 +34,7 @@ module FeatureHub
         @timeout = opts[:timeout] || 30
         @namespace = opts[:namespace] || 0
         @password = opts[:password]
-        @logger = opts[:logger] || Sdk.default_logger
+        @logger = opts[:logger]
         @task = nil
 
         return unless redis_available?
@@ -94,7 +94,7 @@ module FeatureHub
 
         return if features.empty?
 
-        @logger.debug("[featurehubsdk] loading #{features.size} feature(s) from redis")
+        @logger&.debug("[featurehubsdk] loading #{features.size} feature(s) from redis")
         @repository.notify("features", features, SOURCE)
       end
 

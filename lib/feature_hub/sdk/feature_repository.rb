@@ -15,7 +15,7 @@ module FeatureHub
         @raw_listeners = []
         @features = {}
         @ready = false
-        @logger = logger || Sdk.default_logger
+        @logger = logger
       end
 
       def apply(strategies, key, feature_id, context)
@@ -35,24 +35,24 @@ module FeatureHub
         case status.to_sym
         when :features
           update_features(data)
-          @logger.debug("[featurehubsdk] became ready through updates from #{source}") unless @ready
+          @logger&.debug("[featurehubsdk] became ready through updates from #{source}") unless @ready
           @ready = true
           notify_raw_listeners_async { |l| l.process_updates(data, source) }
-          @logger.debug("[featurehubsdk] full updates from #{source} are #{data}")
+          @logger&.debug("[featurehubsdk] full updates from #{source} are #{data}")
         when :feature
           return if data.nil? || data["key"].nil?
 
           update_feature(data)
-          @logger.debug("[featurehubsdk] became ready through updates from #{source}") unless @ready
+          @logger&.debug("[featurehubsdk] became ready through updates from #{source}") unless @ready
           @ready = true
           notify_raw_listeners_async { |l| l.process_update(data, source) }
-          @logger.debug("[featurehubsdk] single feature update from #{source} are #{data}")
+          @logger&.debug("[featurehubsdk] single feature update from #{source} are #{data}")
         when :delete_feature
           return unless data && data["key"]
 
           delete_feature(data)
           notify_raw_listeners_async { |l| l.delete_feature(data, source) }
-          @logger.debug("[featurehubsdk] delete from #{source} are #{data}")
+          @logger&.debug("[featurehubsdk] delete from #{source} are #{data}")
         end
       end
 

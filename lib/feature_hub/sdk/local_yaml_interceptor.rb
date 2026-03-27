@@ -18,10 +18,10 @@ module FeatureHub
         super()
         opts ||= {}
         @yaml_file = opts[:filename] || ENV.fetch("FEATUREHUB_LOCAL_YAML", "featurehub-features.yaml")
-        @logger = opts[:logger] || Sdk.default_logger
+        @logger = opts[:logger]
         @mutex = Mutex.new
         @flag_values = load_flag_values(@yaml_file)
-        @logger.debug("[featurehubsdk] loaded #{@flag_values.size} feature override(s) from #{@yaml_file}")
+        @logger&.debug("[featurehubsdk] loaded #{@flag_values.size} feature override(s) from #{@yaml_file}")
         @watcher = nil
 
         return unless opts[:watch]
@@ -63,7 +63,7 @@ module FeatureHub
 
         @last_mtime = current_mtime
         new_values = load_flag_values(@yaml_file)
-        @logger.debug("[featurehubsdk] reloaded #{new_values.size} feature override(s) from #{@yaml_file}")
+        @logger&.debug("[featurehubsdk] reloaded #{new_values.size} feature override(s) from #{@yaml_file}")
         @mutex.synchronize { @flag_values = new_values }
       end
 
