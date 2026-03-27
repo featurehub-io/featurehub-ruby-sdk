@@ -8,17 +8,5 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-patch"
-
-  - package-ecosystem: bundler
-    directory: "/examples/rails_example"
-    schedule:
-      interval: weekly
-    ignore:
-      - dependency-name: "*"
-
-  - package-ecosystem: bundler
-    directory: "/examples/sinatra"
-    schedule:
-      interval: weekly
-    ignore:
-      - dependency-name: "*"
+    exclude-paths:
+      - "examples/**"
