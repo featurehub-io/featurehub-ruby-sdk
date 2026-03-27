@@ -1,3 +1,8 @@
+## [2.0.1] - 2026-03-27
+
+- Remove `FeatureHub::Sdk.default_logger`; logger now defaults to `nil` instead of a stdout DEBUG logger
+- Replace all `logger.` calls with `logger&.` so a nil logger is silently ignored
+
 ## [2.0.0] - 2026-03-22
 
 - Refactor FeatureState to FeatureStateHolder to be consistent with other SDKs

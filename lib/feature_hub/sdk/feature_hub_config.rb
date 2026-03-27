@@ -28,7 +28,7 @@ module FeatureHub
       attr_reader :edge_url, :api_keys, :client_evaluated, :logger
 
       def initialize(edge_url = nil, api_keys = nil, repository = nil, edge_provider = nil, logger = nil) # rubocop:disable Metrics/ParameterLists
-        @logger = logger || FeatureHub::Sdk.default_logger
+        @logger = logger
         @repository = repository || FeatureHub::Sdk::FeatureHubRepository.new(nil, @logger)
 
         resolved_url = resolve_edge_url(edge_url)

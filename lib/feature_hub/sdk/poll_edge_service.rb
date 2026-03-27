@@ -13,7 +13,7 @@ module FeatureHub
       attr_reader :api_keys, :edge_url, :interval, :stopped, :etag, :cancel, :sha_context
 
       def initialize(repository, api_keys, edge_url, interval, logger = nil)
-        super(repository, api_keys, edge_url, logger || FeatureHub::Sdk.default_logger)
+        super(repository, api_keys, edge_url, logger)
 
         @interval = interval
 
@@ -68,7 +68,7 @@ module FeatureHub
       def poll_with_interval
         return if @cancel || !@task.nil? || @stopped
 
-        @logger.debug("starting polling for #{determine_request_url}")
+        @logger&.debug("starting polling for #{determine_request_url}")
         @task = Concurrent::TimerTask.new(execution_interval: @interval, run_now: false) do
           get_updates
         end
@@ -107,7 +107,7 @@ module FeatureHub
         headers["x-featurehub"] = @context unless @context.nil?
         headers["if-none-match"] = @etag unless @etag.nil?
 
-        @logger.debug("polling for #{url}")
+        @logger&.debug("polling for #{url}")
         resp = @conn.get url, {}, headers
         case resp.status
         when 200
@@ -118,11 +118,11 @@ module FeatureHub
         when 404, 400 # no such key
           @repository.notify("failed", nil, "polling")
           cancel_task
-          @logger.error("featurehub: key does not exist, stopping polling")
+          @logger&.error("featurehub: key does not exist, stopping polling")
         when 503 # dacha busy
-          @logger.debug("featurehub: dacha is busy, trying again")
+          @logger&.debug("featurehub: dacha is busy, trying again")
         else
-          @logger.debug("featurehub: unknown error #{resp.status}") if resp.status != 304
+          @logger&.debug("featurehub: unknown error #{resp.status}") if resp.status != 304
         end
       end
 
