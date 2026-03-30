@@ -83,3 +83,4 @@ Type definitions live in [sig/feature_hub/featurehub.rbs](sig/feature_hub/featur
 - RuboCop: max line length 120, metrics cops disabled, documentation disabled
 - Tests mirror lib structure: `spec/feature_hub/sdk/**/*_spec.rb`
 - Use `instance_double` for mocking, `aggregate_failures` for multiple assertions
+- after making changes run `bundle exec rubocop -a` to autocorrect minor offences and understand what major offences may have been introduced and fix them  

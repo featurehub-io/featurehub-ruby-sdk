@@ -42,4 +42,5 @@ Gem::Specification.new do |spec|
 
   # we will dynamically determine if redis is available
   spec.add_development_dependency "redis", "~> 5"
+  spec.add_development_dependency "dalli", "~> 5"
 end

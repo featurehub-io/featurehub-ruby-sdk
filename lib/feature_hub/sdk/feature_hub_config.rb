@@ -25,6 +25,8 @@ module FeatureHub
 
     # central dispatch class for FeatureHub SDK
     class FeatureHubConfig
+      FALLBACK_ENVIRONMENT_ID = "569b0129-d53d-4516-a818-9154af601047"
+
       attr_reader :edge_url, :api_keys, :client_evaluated, :logger
 
       def initialize(edge_url = nil, api_keys = nil, repository = nil, edge_provider = nil, logger = nil) # rubocop:disable Metrics/ParameterLists
@@ -135,6 +137,13 @@ module FeatureHub
 
         @edge_service.close
         @edge_service = nil
+      end
+
+      def environment_id
+        return FALLBACK_ENVIRONMENT_ID if @api_keys.empty?
+
+        parts = @api_keys.first.split("/")
+        parts.length == 3 ? parts[1] : parts[0]
       end
 
       private
