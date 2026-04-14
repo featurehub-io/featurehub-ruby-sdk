@@ -100,7 +100,15 @@ class App < Sinatra::Base
   end
 
   get("/health/readiness") do
-    if config.repository.ready?
+    if settings.fh_config.repository.ready?
+      "ok"
+    else
+      status(500)
+    end
+  end
+
+  get("/health/liveness") do
+    if settings.fh_config.repository.ready?
       "ok"
     else
       status(500)

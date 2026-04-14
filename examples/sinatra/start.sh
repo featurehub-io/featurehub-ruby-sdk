@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 RACK_ENV=development
 if [[ "$1" == "redis" ]]; then
   echo "detected redis"
