@@ -8,3 +8,5 @@ cop:
 
 spec:
 	bundle exec rspec
+
+ci: cop spec

@@ -13,7 +13,7 @@ services:
     ports:
       - 6379:6379
   memcache:
-    image: memcache:latest
+    image: memcached:1.6-alpine
     ports:
       - 11211:11211
   sinatra:
@@ -38,8 +38,13 @@ services:
     ports:
       - 8099:8099
     environment:
+      RAILS_ENV: production
+      FEATUREHUB_POLLING_INTERVAL: "3"
+      FEATUREHUB_CLIENT_API_KEY: "a1286d73-a23b-4f5b-8fdf-04dd03668fb9/xPlhDYnWlKjjZ3maUPquhOUOmk50gn*Hh8Q5qY6JEURrxtEEjzk"
       FEATUREHUB_EDGE_URL: http://party-server:8085
       FEATUREHUB_BASE_URL: http://party-server:8085
-      FEATUREHUB_REDIS_STORE: memcache
+      FEATUREHUB_MEMCACHE_STORE: memcache
+    depends_on:
+      - memcache
 volumes:
   featurehub-h2-data:

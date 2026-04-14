@@ -4,8 +4,11 @@ source "https://rubygems.org"
 
 ruby "3.3.10"
 
-gem "dalli"
+# 5 prevents us using ruby 3.2 which while EOL is still in our build
+gem "dalli", "~> 4"
 gem "featurehub-sdk", path: "../.."
+# this is just to test 1.x works OK
+gem "faraday", "~> 1"
 gem "rack"
 gem "redis"
 gem "sinatra"

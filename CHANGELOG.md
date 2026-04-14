@@ -2,7 +2,9 @@
         
 - Once the Config is closed it won't reopen
 - Added Memcache cache that operates on the same general principles as Redis.
-It requires Dalli to be available in your dependencies.
+It requires Dalli to be available in your dependencies at least 4.x.
+- The requirement for faraday 2+ has been relaxed, just faraday is now required in
+the gemspec. It has been tested with 2 and 1.
 
 ## [2.0.1] - 2026-03-27
 
