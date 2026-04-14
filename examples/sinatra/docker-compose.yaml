@@ -1,6 +1,6 @@
 services:
   party-server:
-    image: featurehub/party-server:1.9.4
+    image: featurehub/party-server:latest
     ports:
       - 8085:8085
     user: 999:999
@@ -12,13 +12,34 @@ services:
     image: redis:latest
     ports:
       - 6379:6379
-  ruby-sinatra:
-    image: ruby-sinatra:latest
+  memcache:
+    image: memcache:latest
+    ports:
+      - 11211:11211
+  sinatra:
+    image: todo-server:e2e
+    ports:
+      - 8099:8099
+    environment:
+      RAILS_ENV: production
+      FEATUREHUB_CLIENT_API_KEY: "a1286d73-a23b-4f5b-8fdf-04dd03668fb9/xPlhDYnWlKjjZ3maUPquhOUOmk50gn*Hh8Q5qY6JEURrxtEEjzk"
+      FEATUREHUB_EDGE_URL: http://party-server:8085
+      FEATUREHUB_BASE_URL: http://party-server:8085
+  sinatra-redis:
+    image: todo-server:e2e
     ports:
       - 8099:8099
     environment:
       FEATUREHUB_EDGE_URL: http://party-server:8085
       FEATUREHUB_BASE_URL: http://party-server:8085
       FEATUREHUB_REDIS_STORE: redis
+  sinatra-memcache:
+    image: todo-server:e2e
+    ports:
+      - 8099:8099
+    environment:
+      FEATUREHUB_EDGE_URL: http://party-server:8085
+      FEATUREHUB_BASE_URL: http://party-server:8085
+      FEATUREHUB_REDIS_STORE: memcache
 volumes:
   featurehub-h2-data:

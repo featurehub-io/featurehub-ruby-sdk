@@ -324,6 +324,46 @@ Redis keys used:
 - `{prefix}_ids` — a Redis SET of feature IDs
 - `{prefix}_{id}` — the JSON-encoded feature state for each feature
 
+## Caching feature state in Memcache
+
+`MemcacheSessionStore` persists feature values from a `FeatureHubRepository` to Memcache. On startup it reads any previously saved features from Memcache and replays them into the repository, then listens for live updates and writes newer versions back. A background timer periodically re-reads a SHA key so that updates published by other processes are picked up automatically.
+
+> **Warning:** Do not use `MemcacheSessionStore` with server-evaluated features. Each server-evaluated context resolves to different values; sharing a single Memcache key across processes will cause them to overwrite each other's state.
+
+Multi-process writes are safe: the store uses SHA256-based change detection and Dalli's compare-and-set (`cas`) to prevent races between concurrent writers.
+
+```ruby
+# Requires the 'dalli' gem: gem 'dalli', '~> 5'
+store = FeatureHub::Sdk::MemcacheSessionStore.new(
+  "localhost:11211",
+  config,
+  {
+    prefix:             "myapp",  # Key prefix (default: "featurehub")
+    refresh_timeout:    300,      # Seconds between periodic SHA checks (default: 300)
+    backoff_timeout:    500,      # Milliseconds to wait between CAS retries (default: 500)
+    retry_update_count: 10,       # Maximum CAS retry attempts per write (default: 10)
+    logger:             my_logger # Optional logger (default: SDK default logger)
+  }
+)
+
+# Register it so it also receives live updates
+config.register_raw_update_listener(store)
+
+# Shut down cleanly
+store.close
+```
+
+You can also pass an existing `Dalli::Client` instead of a connection string:
+
+```ruby
+dalli = Dalli::Client.new("localhost:11211", serializer: JSON)
+store = FeatureHub::Sdk::MemcacheSessionStore.new(dalli, config)
+```
+
+Memcache keys used:
+- `{prefix}_{environment_id}` — JSON-encoded array of all feature states
+- `{prefix}_{environment_id}_sha` — SHA256 fingerprint used for cross-process change detection
+
 ## Custom raw update listeners
 
 `RawUpdateFeatureListener` is a base class you can subclass to observe every raw feature update that flows through the repository, regardless of source. Register an instance with the repository (or config) and override only the callbacks you need:

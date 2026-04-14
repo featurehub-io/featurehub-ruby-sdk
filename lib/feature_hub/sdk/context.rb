@@ -171,7 +171,7 @@ module FeatureHub
       end
 
       def build
-        @edge.poll
+        @edge&.poll
         self
       end
 
@@ -190,6 +190,8 @@ module FeatureHub
       end
 
       def build
+        return self unless @edge
+
         new_header = @attributes.map { |k, v| "#{k}=#{URI.encode_www_form_component(v[0].to_s)}" } * "&"
 
         if @old_header.nil? && new_header.empty?

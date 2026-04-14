@@ -33,6 +33,8 @@ module FeatureHub
         @logger = logger
         @repository = repository || FeatureHub::Sdk::FeatureHubRepository.new(nil, @logger)
 
+        @closed = false
+
         resolved_url = resolve_edge_url(edge_url)
         resolved_keys = resolve_api_keys(api_keys)
 
@@ -86,6 +88,8 @@ module FeatureHub
 
       # rubocop:disable Naming/AccessorMethodName
       def get_or_create_edge_service
+        return nil if @closed
+
         @edge_service = create_edge_service if @edge_service.nil?
 
         @edge_service
@@ -93,6 +97,7 @@ module FeatureHub
       # rubocop:enable Naming/AccessorMethodName
 
       def edge_service_provider(edge_provider = nil)
+        return nil if @closed
         return @edge_service_provider if edge_provider.nil?
 
         @edge_service_provider = edge_provider
@@ -113,26 +118,30 @@ module FeatureHub
       def new_context
         get_or_create_edge_service
 
+        edge_service = @closed ? nil : @edge_service
+
         if @client_evaluated
-          ClientEvalFeatureContext.new(@repository, @edge_service)
+          ClientEvalFeatureContext.new(@repository, edge_service)
         else
-          ServerEvalFeatureContext.new(@repository, @edge_service)
+          ServerEvalFeatureContext.new(@repository, edge_service)
         end
       end
 
       def close
         unless @repository.nil?
+          @logger&.info("[featurehubsdk] repository now closed")
           @repository.close
           @repository = nil
         end
 
-        return if @edge_service.nil?
-
-        @edge_service.close
-        @edge_service = nil
+        close_edge
       end
 
       def close_edge
+        return if @closed
+
+        @logger&.info("[featurehubsdk] edge now closed")
+        @closed = true
         return if @edge_service.nil?
 
         @edge_service.close
@@ -157,7 +166,12 @@ module FeatureHub
       end
 
       def create_default_provider(repo, api_keys, edge_url, logger)
-        FeatureHub::Sdk::StreamingEdgeService.new(repo, api_keys, edge_url, logger)
+        if ENV["FEATUREHUB_POLL_INTERVAL"]
+          use_polling_edge_service
+          create_polling_edge_provider(repo, api_keys, edge_url, logger)
+        else
+          FeatureHub::Sdk::StreamingEdgeService.new(repo, api_keys, edge_url, logger)
+        end
       end
 
       def resolve_edge_url(edge_url)

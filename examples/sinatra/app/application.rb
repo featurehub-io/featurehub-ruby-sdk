@@ -5,14 +5,21 @@ require "sinatra"
 require "featurehub-sdk"
 require "json"
 
-def configure_featurehub
+def configure_featurehub(logger)
   puts "FeatureHub SDK Version is #{FeatureHub::Sdk::VERSION}"
 
-  config = FeatureHub::Sdk::FeatureHubConfig.new
+  config = FeatureHub::Sdk::FeatureHubConfig.new(nil, nil, nil, nil, logger)
   repo = config.repository
 
   if ENV["FEATUREHUB_REDIS_STORE"]
-    config.register_raw_update_listener(FeatureHub::Sdk::RedisSessionStore.new(ENV["FEATUREHUB_REDIS_STORE"], repo))
+    config.register_raw_update_listener(FeatureHub::Sdk::RedisSessionStore.new(ENV["FEATUREHUB_REDIS_STORE"], repo,
+                                                                               { logger: logger, timeout: 3 }))
+  end
+
+  if ENV["FEATUREHUB_MEMCACHE_STORE"]
+    config.register_raw_update_listener(FeatureHub::Sdk::MemcacheSessionStore.new(ENV["FEATUREHUB_MEMCACHE_STORE"],
+                                                                                  config, { logger: logger,
+                                                                                            refresh_timeout: 3 }))
   end
 
   if ENV["FEATUREHUB_LOCAL_YAML"]
@@ -34,16 +41,14 @@ class App < Sinatra::Base
     rack = File.new("logs/rack.log", "a+")
     use Rack::CommonLogger, rack
 
-    set :fh_config, configure_featurehub
+    logger = Logger.new($stdout)
+    set :logger, logger
+    set :fh_config, configure_featurehub(logger)
     set :users, {}
   end
 
   before do
     content_type "application/json"
-  end
-
-  get("/config/disconnect-edge") do
-    settings.fh_config.close_edge
   end
 
   # Routes
@@ -83,6 +88,7 @@ class App < Sinatra::Base
     if new_todo["title"].nil?
       status(400)
     else
+      settings.logger.debug("todo is #{new_todo}")
       todos.push(Todo.new(new_todo["id"] || 1, new_todo["title"], new_todo["resolved"] || false))
       todo_list(user)
     end
@@ -101,6 +107,11 @@ class App < Sinatra::Base
     end
   end
 
+  get("/health/disconnect") do
+    settings.fh_config.close_edge
+    status 200
+  end
+
   private
 
   def todo_list(user)
@@ -113,6 +124,7 @@ class App < Sinatra::Base
       new_todos.push(Todo.new(todo.id, process_title(ctx, todo.title), todo.resolved).to_h)
     end
 
+    settings.logger.debug("todos #{new_todos}")
     new_todos.to_json
   end
 
@@ -139,15 +151,6 @@ class App < Sinatra::Base
 
     new_title = new_title.upcase if ctx.enabled?("FEATURE_TITLE_TO_UPPERCASE")
 
-    # puts("features via repository: #{settings.fh_config.repository.features}")
-    # puts("features via edge service: #{settings.fh_config.get_or_create_edge_service.repository}")
-
-    # puts("enabled? #{ctx.repo.features}")
-    puts(ctx.enabled?("FEATURE_TITLE_TO_UPPERCASE"))
-    puts(ctx.flag("FEATURE_TITLE_TO_UPPERCASE"))
-    puts(settings.fh_config.repository.feature("FEATURE_TITLE_TO_UPPERCASE").feature_type)
-    puts(settings.fh_config.repository.feature("FEATURE_TITLE_TO_UPPERCASE").flag)
-
-    new_title&.strip
+    new_title
   end
 end

@@ -57,12 +57,13 @@ module FeatureHub
         return unless dalli_available?
 
         @dalli = if connection_or_client.is_a?(String)
-                   Dalli::Client.new(connection_or_client)
+                   Dalli::Client.new(connection_or_client, serializer: JSON)
                  else
                    connection_or_client
                  end
 
-        load_from_memcache
+        @logger&.debug("[featurehubsdk] started memcache store")
+        Concurrent::Future.execute { load_from_memcache }
         start_timer
       end
 
@@ -154,7 +155,8 @@ module FeatureHub
       # The block returns the new features array to store, or nil to abort.
       # Uses compare-and-set with retry to handle multi-process contention.
       def perform_store_with_retry
-        @retry_update_count.times do |attempt|
+        attempt = 0
+        while attempt < @retry_update_count
           memcache_features = read_features_from_memcache
           new_features = yield(memcache_features)
           return if new_features.nil?
@@ -165,9 +167,10 @@ module FeatureHub
 
           current_sha = @dalli.get(sha_key)
 
-          unless current_sha == current_internal
+          if current_sha != current_internal
             # Another process updated memcache — reload and recheck on next attempt
             sleep(@backoff_timeout / 1000.0) unless attempt == @retry_update_count - 1
+            attempt += 1
             next
           end
 
@@ -180,6 +183,7 @@ module FeatureHub
           end
 
           sleep(@backoff_timeout / 1000.0) unless attempt == @retry_update_count - 1
+          attempt += 1
         end
 
         @logger&.warn("[featurehubsdk] failed to update memcache after #{@retry_update_count} retries")

@@ -7,4 +7,21 @@ for details on how it works, it is fairly simple.
 It can be built into a Passenger dockerfile using the `build.sh` script and started
 using `docker_start.sh`
 
+We typically want to run one cache and then two copies of the server. We would normally disconnect the primary server (running on 8099) from edge, leaving the second server running (8100) and writing to the cache.
 
+To disconnect from edge, call `curl localhost:8099/health/disconnect`
+
+The tests should still pass as the primary server is picking up changes from the cache.
+
+== Redis
+
+----
+docker run -d -p 6379:6379 --name redis redis
+
+----
+
+== Memcache
+
+----
+docker run -p 11211:11211 --name memcache -d memcached
+----

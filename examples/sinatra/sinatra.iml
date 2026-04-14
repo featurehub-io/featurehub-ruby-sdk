@@ -10,6 +10,7 @@
     <orderEntry type="library" scope="PROVIDED" name="concurrent-ruby (v1.3.6, rbenv: 3.3.10) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="connection_pool (v3.0.2, rbenv: 3.3.10) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="daemons (v1.4.1, rbenv: 3.3.10) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="dalli (v5.0.2, rbenv: 3.3.10) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="domain_name (v0.6.20240107, rbenv: 3.3.10) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="eventmachine (v1.2.7, rbenv: 3.3.10) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="faraday (v2.14.1, rbenv: 3.3.10) [gem]" level="application" />

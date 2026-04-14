@@ -1,3 +1,9 @@
+## [2.1.0] - 2026-04-14
+        
+- Once the Config is closed it won't reopen
+- Added Memcache cache that operates on the same general principles as Redis.
+It requires Dalli to be available in your dependencies.
+
 ## [2.0.1] - 2026-03-27
 
 - Remove `FeatureHub::Sdk.default_logger`; logger now defaults to `nil` instead of a stdout DEBUG logger

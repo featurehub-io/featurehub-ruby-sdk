@@ -94,6 +94,8 @@ module FeatureHub
 
       def set?: () -> bool?
 
+      def phantom?: () -> bool
+
       private
 
       def top_feature_state: -> FeatureStateHolder

@@ -41,6 +41,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "sem_version", "~> 2.0.0"
 
   # we will dynamically determine if redis is available
-  spec.add_development_dependency "redis", "~> 5"
   spec.add_development_dependency "dalli", "~> 5"
+  spec.add_development_dependency "redis", "~> 5"
 end

@@ -1,0 +1,12 @@
+/bin
+/sig
+/spec
+/.rpsec
+/.rubocop.yml
+/*.md
+/.github
+/examples/rails-example
+/examples/sinatra/logs
+/.git
+/.idea
+/.claude

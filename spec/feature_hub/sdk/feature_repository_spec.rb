@@ -76,6 +76,13 @@ RSpec.describe FeatureHub::Sdk::FeatureHubRepository do
   describe "feature repository" do
     let(:apply_features) { instance_double(FeatureHub::Sdk::Impl::ApplyFeature) }
     let(:repo) { FeatureHub::Sdk::FeatureHubRepository.new(apply_features) }
+    let(:all_features) { JSON.parse(raw_good_features) }
+
+    it "should report phantom features correctly" do
+      repo.notify("features", all_features)
+      expect(repo.feature("sample_flag").phantom?).to eq(false)
+      expect(repo.feature("unknown").phantom?).to eq(true)
+    end
 
     it "should receive a json array of features and process it" do
       features = JSON.parse(raw_good_features)

@@ -4,6 +4,7 @@ source "https://rubygems.org"
 
 ruby "3.3.10"
 
+gem "dalli"
 gem "featurehub-sdk", path: "../.."
 gem "rack"
 gem "redis"
