@@ -5,10 +5,11 @@ source "https://rubygems.org"
 ruby "3.3.10"
 
 gem "dalli"
-gem "featurehub-sdk", path: "../.."
+gem "featurehub-sdk"#, path: "../.."
 gem "rack"
 gem "redis"
 gem "sinatra"
+gem "logger"
 # gem "featurehub-sdk", git: "https://github.com/featurehub-io/featurehub-ruby-sdk.git",
 #                       glob: "featurehub-sdk/*.gemspec"
 

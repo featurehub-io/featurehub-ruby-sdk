@@ -10,15 +10,21 @@ RUN echo 'gem: --no-document' >> ~/.gemrc && \
 
 
 # set up nsswitch
-COPY examples/sinatra/conf/nsswitch.conf /etc/nsswitch.conf
+COPY conf/nsswitch.conf /etc/nsswitch.conf
 
-COPY examples/sinatra/conf/nginx.conf /etc/nginx/nginx.conf
+COPY conf/nginx.conf /etc/nginx/nginx.conf
 ADD . /app/featurehub
 WORKDIR /app/featurehub
-RUN cd examples/sinatra && bundle config set --local deployment 'true' --without 'development test' path 'vendor/bundle'
-RUN cd /app/featurehub/examples/sinatra && cat .bundle/config
-RUN cd /app/featurehub/examples/sinatra && bundle install
-ENV BUNDLE_PATH=/app/featurehub/examples/sinatra/vendor/bundle
+
+RUN bundle config set --local deployment 'true' --without 'development test' path 'vendor/bundle'
+
+RUN cat .bundle/config
+
+COPY config.ru ./
+
+COPY Gemfile Gemfile.lock ./
+RUN bundle install
+# ENV BUNDLE_PATH=/app/featurehub/examples/sinatra/vendor/bundle
 
 CMD /usr/sbin/nginx -g 'daemon off;'
 #CMD /usr/bin/bash
