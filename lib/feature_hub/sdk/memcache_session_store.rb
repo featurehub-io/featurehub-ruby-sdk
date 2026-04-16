@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require "json"
-require "digest"
 require "concurrent-ruby"
+require_relative "session_store_helpers"
 
 module FeatureHub
   module Sdk
@@ -33,6 +33,8 @@ module FeatureHub
     # replays them into the repository. A periodic timer re-reads the SHA key so that
     # updates published by other processes are picked up automatically.
     class MemcacheSessionStore < RawUpdateFeatureListener
+      include SessionStoreHelpers
+
       SOURCE = "memcache-store"
 
       # @param connection_or_client [String, Dalli::Client] Memcache connection string or existing client
@@ -61,6 +63,8 @@ module FeatureHub
                  else
                    connection_or_client
                  end
+
+        config.register_raw_update_listener(self)
 
         @logger&.debug("[featurehubsdk] started memcache store")
         Concurrent::Future.execute { load_from_memcache }
@@ -213,36 +217,6 @@ module FeatureHub
         JSON.parse(json)
       rescue JSON::ParserError
         []
-      end
-
-      def merge_features(base, updates)
-        result = base.dup
-        updates.each do |update|
-          idx = result.find_index { |f| f["id"] == update["id"] }
-          if idx
-            result[idx] = update if version_of(update) > version_of(result[idx])
-          else
-            result << update
-          end
-        end
-        result
-      end
-
-      def calculate_sha(features)
-        parts = features.map { |f| "#{f["id"]}:#{version_of(f)}" }.join("|")
-        Digest::SHA256.hexdigest(parts)
-      end
-
-      def version_of(feature)
-        (feature["version"] || 0).to_i
-      end
-
-      def features_key
-        "#{@prefix}_#{@environment_id}"
-      end
-
-      def sha_key
-        "#{@prefix}_#{@environment_id}_sha"
       end
     end
   end

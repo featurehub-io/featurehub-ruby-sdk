@@ -12,14 +12,14 @@ def configure_featurehub(logger)
   repo = config.repository
 
   if ENV["FEATUREHUB_REDIS_STORE"]
-    config.register_raw_update_listener(FeatureHub::Sdk::RedisSessionStore.new(ENV["FEATUREHUB_REDIS_STORE"], repo,
-                                                                               { logger: logger, timeout: 3 }))
+    FeatureHub::Sdk::RedisSessionStore.new(ENV["FEATUREHUB_REDIS_STORE"], config,
+                                                                               { logger: logger, refresh_timeout: 3 })
   end
 
   if ENV["FEATUREHUB_MEMCACHE_STORE"]
-    config.register_raw_update_listener(FeatureHub::Sdk::MemcacheSessionStore.new(ENV["FEATUREHUB_MEMCACHE_STORE"],
+    FeatureHub::Sdk::MemcacheSessionStore.new(ENV["FEATUREHUB_MEMCACHE_STORE"],
                                                                                   config, { logger: logger,
-                                                                                            refresh_timeout: 3 }))
+                                                                                            refresh_timeout: 3 })
   end
 
   if ENV["FEATUREHUB_LOCAL_YAML"]
@@ -27,6 +27,9 @@ def configure_featurehub(logger)
     config.register_interceptor(FeatureHub::Sdk::LocalYamlValueInterceptor.new(watch: true))
   end
 
+
+
+  puts "connecting to FeatureHub"
   # connect to edge service
   config.init
 end
