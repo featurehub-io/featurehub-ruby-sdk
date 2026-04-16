@@ -64,8 +64,6 @@ module FeatureHub
                    connection_or_client
                  end
 
-        config.register_raw_update_listener(self)
-
         @logger&.debug("[featurehubsdk] started memcache store")
         Concurrent::Future.execute { load_from_memcache }
         start_timer

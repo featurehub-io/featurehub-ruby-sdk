@@ -1,9 +1,9 @@
 name: e2e-tests
 
 on:
-#  pull_request:
-#    types: [labeled, synchronize, reopened]
-#    branches: [master]
+  pull_request:
+    types: [labeled, synchronize, reopened]
+    branches: [master]
 
   workflow_dispatch:
 
