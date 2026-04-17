@@ -295,34 +295,87 @@ The file path defaults to `featurehub-overrides.yaml` or the `FEATUREHUB_LOCAL_Y
 
 ## Caching feature state in Redis
 
-`RedisSessionStore` persists feature values from a `FeatureHubRepository` to Redis. On startup it replays cached features into the repository, then listens for live updates and writes newer versions back. A background timer re-reads all features periodically so updates from other processes are picked up automatically.
+`RedisSessionStore` persists feature values from a `FeatureHubRepository` to Redis. On startup it replays cached features into the repository, then listens for live updates and writes newer versions back. A background timer periodically re-reads a SHA key so that updates published by other processes are picked up automatically.
 
 > **Warning:** Do not use `RedisSessionStore` with server-evaluated features. Each server-evaluated context resolves to different values; sharing a single Redis key across processes will cause them to overwrite each other's state.
+
+Multi-process writes are safe: the store uses SHA256-based change detection and Redis `WATCH`/`MULTI`/`EXEC` to atomically update both keys and prevent races between concurrent writers.
+
+Pass a `FeatureHubConfig` as the second argument — the store reads `repository` and `environment_id` from it and registers itself as a raw update listener automatically.
 
 ```ruby
 # Requires the 'redis' gem: gem 'redis', '~> 5'
 store = FeatureHub::Sdk::RedisSessionStore.new(
   "redis://localhost:6379",
-  config.repository,
+  config,                       # FeatureHubConfig — NOT config.repository
   {
-    prefix:    "myapp",       # Redis key prefix (default: "featurehub")
-    namespace: 0,             # Redis DB index (default: 0)
-    timeout:   60,            # Seconds between periodic reloads (default: 30)
-    password:  "secret",      # Optional Redis password
-    logger:    my_logger      # Optional logger (default: SDK default logger)
+    prefix:             "myapp", # Redis key prefix (default: "featurehub")
+    db:                 0,       # Redis DB index (default: 0)
+    refresh_timeout:    300,     # Seconds between periodic SHA checks (default: 300)
+    backoff_timeout:    500,     # Milliseconds to wait between WATCH retries (default: 500)
+    retry_update_count: 10,      # Maximum WATCH retry attempts per write (default: 10)
+    logger:             my_logger # Optional logger
   }
 )
-
-# Register it so it also receives live updates
-config.register_raw_update_listener(store)
 
 # Shut down cleanly
 store.close
 ```
 
+You can also pass an existing Redis client instead of a connection string (e.g. a RedisCluster client or a pre-configured `Redis` instance):
+
+```ruby
+redis = Redis.new(url: "redis://localhost:6379", db: 1)
+store = FeatureHub::Sdk::RedisSessionStore.new(redis, config)
+```
+
+You can also pass a `RedisSessionStoreOptions` object directly:
+
+```ruby
+opts = FeatureHub::Sdk::RedisSessionStoreOptions.new(prefix: "myapp", db: 2)
+store = FeatureHub::Sdk::RedisSessionStore.new("redis://localhost:6379", config, opts)
+```
+
 Redis keys used:
-- `{prefix}_ids` — a Redis SET of feature IDs
-- `{prefix}_{id}` — the JSON-encoded feature state for each feature
+- `{prefix}_{environment_id}` — JSON-encoded array of all feature states
+- `{prefix}_{environment_id}_sha` — SHA256 fingerprint used for cross-process change detection
+
+## Caching feature state in Memcache
+
+`MemcacheSessionStore` persists feature values from a `FeatureHubRepository` to Memcache. On startup it reads any previously saved features from Memcache and replays them into the repository, then listens for live updates and writes newer versions back. A background timer periodically re-reads a SHA key so that updates published by other processes are picked up automatically.
+
+> **Warning:** Do not use `MemcacheSessionStore` with server-evaluated features. Each server-evaluated context resolves to different values; sharing a single Memcache key across processes will cause them to overwrite each other's state.
+
+Multi-process writes are safe: the store uses SHA256-based change detection and Dalli's compare-and-set (`cas`) to prevent races between concurrent writers.
+
+```ruby
+# Requires the 'dalli' gem: gem 'dalli', '~> 5'
+store = FeatureHub::Sdk::MemcacheSessionStore.new(
+  "localhost:11211",
+  config,
+  {
+    prefix:             "myapp",  # Key prefix (default: "featurehub")
+    refresh_timeout:    300,      # Seconds between periodic SHA checks (default: 300)
+    backoff_timeout:    500,      # Milliseconds to wait between CAS retries (default: 500)
+    retry_update_count: 10,       # Maximum CAS retry attempts per write (default: 10)
+    logger:             my_logger # Optional logger (default: SDK default logger)
+  }
+)
+
+# Shut down cleanly
+store.close
+```
+
+You can also pass an existing `Dalli::Client` instead of a connection string:
+
+```ruby
+dalli = Dalli::Client.new("localhost:11211", serializer: JSON)
+store = FeatureHub::Sdk::MemcacheSessionStore.new(dalli, config)
+```
+
+Memcache keys used:
+- `{prefix}_{environment_id}` — JSON-encoded array of all feature states
+- `{prefix}_{environment_id}_sha` — SHA256 fingerprint used for cross-process change detection
 
 ## Custom raw update listeners
 
@@ -346,7 +399,7 @@ end
 config.register_raw_update_listener(MyAuditListener.new)
 ```
 
-Callbacks are dispatched asynchronously via `Concurrent::Future`. The `source` parameter will be `"streaming"`, `"polling"`, `"local-yaml"`, `"redis-store"`, or `"unknown"`.
+Callbacks are dispatched asynchronously via `Concurrent::Future`. The `source` parameter will be `"streaming"`, `"polling"`, `"local-yaml"`, `"redis-store"`, `"memcache-store"`, or `"unknown"`.
 
 All listeners are closed automatically when `config.close` or `repository.close` is called.
 

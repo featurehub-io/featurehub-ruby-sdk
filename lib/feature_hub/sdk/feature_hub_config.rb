@@ -25,11 +25,15 @@ module FeatureHub
 
     # central dispatch class for FeatureHub SDK
     class FeatureHubConfig
+      FALLBACK_ENVIRONMENT_ID = "569b0129-d53d-4516-a818-9154af601047"
+
       attr_reader :edge_url, :api_keys, :client_evaluated, :logger
 
       def initialize(edge_url = nil, api_keys = nil, repository = nil, edge_provider = nil, logger = nil) # rubocop:disable Metrics/ParameterLists
         @logger = logger
         @repository = repository || FeatureHub::Sdk::FeatureHubRepository.new(nil, @logger)
+
+        @closed = false
 
         resolved_url = resolve_edge_url(edge_url)
         resolved_keys = resolve_api_keys(api_keys)
@@ -84,6 +88,8 @@ module FeatureHub
 
       # rubocop:disable Naming/AccessorMethodName
       def get_or_create_edge_service
+        return nil if @closed
+
         @edge_service = create_edge_service if @edge_service.nil?
 
         @edge_service
@@ -91,6 +97,7 @@ module FeatureHub
       # rubocop:enable Naming/AccessorMethodName
 
       def edge_service_provider(edge_provider = nil)
+        return nil if @closed
         return @edge_service_provider if edge_provider.nil?
 
         @edge_service_provider = edge_provider
@@ -103,7 +110,8 @@ module FeatureHub
         edge_provider
       end
 
-      def use_polling_edge_service(interval = ENV.fetch("FEATUREHUB_POLL_INTERVAL", "30").to_i)
+      def use_polling_edge_service(interval = ENV.fetch("FEATUREHUB_POLL_INTERVAL",
+                                                        ENV.fetch("FEATUREHUB_POLLING_INTERVAL", "30")).to_i)
         @interval = interval
         @edge_service_provider = method(:create_polling_edge_provider)
       end
@@ -111,30 +119,41 @@ module FeatureHub
       def new_context
         get_or_create_edge_service
 
+        edge_service = @closed ? nil : @edge_service
+
         if @client_evaluated
-          ClientEvalFeatureContext.new(@repository, @edge_service)
+          ClientEvalFeatureContext.new(@repository, edge_service)
         else
-          ServerEvalFeatureContext.new(@repository, @edge_service)
+          ServerEvalFeatureContext.new(@repository, edge_service)
         end
       end
 
       def close
         unless @repository.nil?
+          @logger&.info("[featurehubsdk] repository now closed")
           @repository.close
           @repository = nil
         end
 
+        close_edge
+      end
+
+      def close_edge
+        return if @closed
+
+        @logger&.info("[featurehubsdk] edge now closed")
+        @closed = true
         return if @edge_service.nil?
 
         @edge_service.close
         @edge_service = nil
       end
 
-      def close_edge
-        return if @edge_service.nil?
+      def environment_id
+        return FALLBACK_ENVIRONMENT_ID if @api_keys.empty?
 
-        @edge_service.close
-        @edge_service = nil
+        parts = @api_keys.first.split("/")
+        parts.length == 3 ? parts[1] : parts[0]
       end
 
       private
@@ -148,7 +167,12 @@ module FeatureHub
       end
 
       def create_default_provider(repo, api_keys, edge_url, logger)
-        FeatureHub::Sdk::StreamingEdgeService.new(repo, api_keys, edge_url, logger)
+        if ENV["FEATUREHUB_POLL_INTERVAL"] || ENV["FEATUREHUB_POLLING_INTERVAL"]
+          use_polling_edge_service
+          create_polling_edge_provider(repo, api_keys, edge_url, logger)
+        else
+          FeatureHub::Sdk::StreamingEdgeService.new(repo, api_keys, edge_url, logger)
+        end
       end
 
       def resolve_edge_url(edge_url)

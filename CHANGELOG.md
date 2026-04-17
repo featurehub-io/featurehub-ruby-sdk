@@ -1,3 +1,12 @@
+## [2.1.0] - 2026-04-14
+        
+- Once the Config is closed it won't reopen
+- Added Memcache cache that operates on the same general principles as Redis.
+It requires Dalli to be available in your dependencies at least 4.x.
+- The requirement for faraday 2+ has been relaxed, just faraday is now required in
+the gemspec. It has been tested with 2 and 1.
+- Redis session store has been updated so it only uses two keys
+
 ## [2.0.1] - 2026-03-27
 
 - Remove `FeatureHub::Sdk.default_logger`; logger now defaults to `nil` instead of a stdout DEBUG logger

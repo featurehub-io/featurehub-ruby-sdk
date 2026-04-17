@@ -35,8 +35,6 @@ Metrics/CyclomaticComplexity:
 Naming/FileName:
   Enabled: false
 
-Gemspec/DeprecatedAttributeAssignment:
-  Enabled: true
 Gemspec/DeprecatedAttributeAssignment: # new in 1.30
   Enabled: true
 Gemspec/RequireMFA: # new in 1.23

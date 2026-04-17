@@ -35,11 +35,12 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "concurrent-ruby", "~> 1.3"
-  spec.add_dependency "faraday", "~> 2"
+  spec.add_dependency "faraday"
   spec.add_dependency "ld-eventsource", "~> 2.5.1"
   spec.add_dependency "murmurhash3", "~> 0.1.7"
   spec.add_dependency "sem_version", "~> 2.0.0"
 
   # we will dynamically determine if redis is available
+  spec.add_development_dependency "dalli", "~> 4"
   spec.add_development_dependency "redis", "~> 5"
 end

@@ -92,6 +92,12 @@ module FeatureHub
         !value.nil?
       end
 
+      def phantom?
+        return @parent_state&.phantom? unless @parent_state.nil?
+
+        @internal_feature_state.empty?
+      end
+
       def top_feature_state
         return @parent_state&.top_feature_state if @parent_state
 

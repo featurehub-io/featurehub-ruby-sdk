@@ -192,6 +192,23 @@ RSpec.describe FeatureHub::Sdk::FeatureHubConfig do
     end
   end
 
+  describe "#environment_id" do
+    it "returns the fallback id when no api keys are configured" do
+      config = FeatureHub::Sdk::FeatureHubConfig.new
+      expect(config.environment_id).to eq("569b0129-d53d-4516-a818-9154af601047")
+    end
+
+    it "returns the 1st part when the key has two slash-separated parts" do
+      config = FeatureHub::Sdk::FeatureHubConfig.new("http://localhost", ["env-id/api-key"])
+      expect(config.environment_id).to eq("env-id")
+    end
+
+    it "returns the 2nd part when the key has three slash-separated parts" do
+      config = FeatureHub::Sdk::FeatureHubConfig.new("http://localhost", ["org-id/env-id/api*key"])
+      expect(config.environment_id).to eq("env-id")
+    end
+  end
+
   it "should close the previous edge service when swapping" do
     edge1 = instance_double(FeatureHub::Sdk::EdgeService)
     edge2 = instance_double(FeatureHub::Sdk::EdgeService)

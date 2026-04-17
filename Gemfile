@@ -15,7 +15,7 @@ gem "simplecov", "~> 0.21"
 
 gem "concurrent-ruby", "~> 1.3"
 
-gem "faraday", "~> 2"
+gem "faraday"
 
 gem "murmurhash3", "~> 0.1.7"
 
