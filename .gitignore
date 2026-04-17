@@ -17,3 +17,5 @@
 /.claude/settings.local.json
 /TODO.md
 /.claude/settings.json
+*.iml
+/.vscode
