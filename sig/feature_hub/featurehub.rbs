@@ -66,6 +66,8 @@ module FeatureHub
 
       def feature_type: -> String?
 
+      def feature_properties: -> Hash[String, String]
+
       def with_context: (ctx: ClientContext) -> FeatureStateHolder
 
       def update_feature_state: (feature_state: FeatureState) -> void

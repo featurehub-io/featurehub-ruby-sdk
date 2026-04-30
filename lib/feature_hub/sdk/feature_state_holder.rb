@@ -43,6 +43,11 @@ module FeatureHub
         exists?(fs) ? fs["type"] : nil
       end
 
+      def feature_properties
+        fs = feature_state
+        (exists?(fs) ? fs["fp"] : {}) || {}
+      end
+
       def with_context(ctx)
         FeatureStateHolder.new(@key, @repo, nil, self, ctx)
       end
