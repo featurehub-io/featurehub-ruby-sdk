@@ -1,3 +1,8 @@
+## [2.1.1] - 2026-05-01
+
+- expose Feature Properties capability
+- wrap poll in case of transient timeout or similar error to allow it to continue
+
 ## [2.1.0] - 2026-04-14
         
 - Once the Config is closed it won't reopen
