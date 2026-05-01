@@ -147,8 +147,8 @@ RSpec.describe FeatureHub::Sdk::PollingEdgeService do
         context "with an cache control header" do
           it "that does not contain max-age" do
             expect(resp).to receive(:headers)
-                              .and_return({ "cache-control" => "no-store, no-age, bark, bark, bark" })
-                              .at_least(:once)
+              .and_return({ "cache-control" => "no-store, no-age, bark, bark, bark" })
+              .at_least(:once)
             expect(resp).to receive(:body).and_return("[]")
 
             poller.poll
@@ -158,8 +158,8 @@ RSpec.describe FeatureHub::Sdk::PollingEdgeService do
 
           it "and the timer is created with it and its interval is set correctly" do
             expect(resp).to receive(:headers)
-                              .and_return({ "cache-control" => "no-store, max-age=24, bark, bark, bark" })
-                              .at_least(:once)
+              .and_return({ "cache-control" => "no-store, max-age=24, bark, bark, bark" })
+              .at_least(:once)
             expect(resp).to receive(:body).and_return("[]")
             expect(timer).to receive(:execution_interval=).with(24)
 
@@ -186,7 +186,5 @@ RSpec.describe FeatureHub::Sdk::PollingEdgeService do
         end
       end
     end
-
   end
-
 end
