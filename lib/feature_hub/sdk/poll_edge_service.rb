@@ -108,21 +108,27 @@ module FeatureHub
         headers["if-none-match"] = @etag unless @etag.nil?
 
         @logger&.debug("polling for #{url}")
-        resp = @conn.get url, {}, headers
-        case resp.status
-        when 200
-          success(resp)
-        when 236
-          stopped_task
-          success(resp)
-        when 404, 400 # no such key
-          @repository.notify("failed", nil, "polling")
-          cancel_task
-          @logger&.error("featurehub: key does not exist, stopping polling")
-        when 503 # dacha busy
-          @logger&.debug("featurehub: dacha is busy, trying again")
-        else
-          @logger&.debug("featurehub: unknown error #{resp.status}") if resp.status != 304
+        begin
+          resp = @conn.get url, {}, headers
+          case resp.status
+          when 200
+            success(resp)
+          when 236
+            stopped_task
+            success(resp)
+          when 404, 400 # no such key
+            @repository.notify("failed", nil, "polling")
+            cancel_task
+            @logger&.error("featurehub: key does not exist, stopping polling")
+          when 503 # dacha busy
+            @logger&.debug("featurehub: dacha is busy, trying again")
+          else
+            @logger&.debug("featurehub: unknown error #{resp.status}") if resp.status != 304
+          end
+        rescue StandardError => e
+          # we can get timeout errors for transient network failures, this should not prevent the
+          # next poll from happening however
+          @logger&.error("featurehub: failed to connect or similar error #{e&.message}")
         end
       end
 
