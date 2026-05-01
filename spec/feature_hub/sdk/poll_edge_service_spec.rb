@@ -8,153 +8,181 @@ RSpec.describe FeatureHub::Sdk::PollingEdgeService do
   let(:timer) { instance_double(Concurrent::TimerTask) }
   let(:interval) { 0 }
   let(:logger) { double("logger") }
-  let(:poller) { described_class.new(repo, ["api_key"], "url/", interval, logger) }
   let(:conn) { instance_double(Faraday::Connection) }
   let(:resp) { instance_double(Faraday::Response) }
 
-  before do
-    allow(logger).to receive(:debug)
-    allow(logger).to receive(:info)
-    allow(Faraday).to receive(:new).with(url: "url/").and_return(conn)
-    allow(Concurrent::TimerTask).to receive(:new).with(execution_interval: interval, run_now: false).and_return(timer)
-  end
+  context "when polling" do
+    let(:poller) { described_class.new(repo, ["api_key"], "url/", interval, logger) }
 
-  context "with a different header" do
-    let(:interval) { 20 }
-
-    it "should allow me to set a different header" do
-      expect(Digest::SHA256).to receive(:hexdigest).and_return("12345")
-
-      expect(conn).to receive(:get).with("features?apiKey=api_key&contextSha=12345",
-                                         {},
-                                         hash_including("x-featurehub" => "blah"))
-                                   .and_return(resp)
-
-      expect(resp).to receive(:status).and_return(200)
-      expect(resp).to receive(:headers).and_return({}).twice
-      expect(resp).to receive(:body).and_return("[]")
-      expect(timer).to receive(:execute)
-
-      poller.context_change("blah")
-      expect(poller.sha_context).to eq("12345")
-    end
-  end
-
-  # test essentially works, can't figure out how to get it to match
-  # it "should pick up the etag header and try and use it again" do
-  #   expect(conn).to receive(:get).with("features?apiKey=api_key",
-  #                                      request: { timeout: 12 },
-  #                                      headers: hash_including(accept: "application/json"))
-  #                                .and_return(resp)
-  #   expect(resp).to receive(:status).and_return(200).at_least(:twice)
-  #   expect(resp).to receive(:headers).and_return({"etag" => "12345"}).at_least(:twice)
-  #   expect(resp).to receive(:body).and_return("[]").twice
-  #   expect(timer).to receive(:execute).twice
-  #   expect(timer).to receive(:shutdown)
-  #   poller.poll
-  #   poller.close
-  #   expect(conn).to receive(:get).with("features?apiKey=api_key",
-  #                                      request: { timeout: 12 },
-  #                                      headers: hash_including("if-none-matches" => "12345"))
-  #                                .and_return(resp).once
-  #   poller.poll
-  # end
-
-  context "setting a 20 second interval" do
-    let(:interval) { 20 }
-
-    before do
-      expect(conn).to receive(:get).with("features?apiKey=api_key&contextSha=0",
-                                         {},
-                                         hash_including(accept: "application/json"))
-                                   .and_return(resp)
+    before(:each) do
+      allow(logger).to receive(:debug)
+      allow(logger).to receive(:info)
+      allow(Faraday).to receive(:new).with(url: "url/").and_return(conn)
+      allow(Concurrent::TimerTask).to receive(:new).with(execution_interval: interval, run_now: false).and_return(timer)
+      allow(timer).to receive(:shutdown)
     end
 
-    it "should start polling and process a 236 response" do
-      expect(resp).to receive(:status).and_return(236)
-      expect(resp).to receive(:headers).and_return({}).twice
-      expect(resp).to receive(:body).and_return("[]")
-      expect(timer).to receive(:shutdown)
-
-      poller.poll
-
-      expect(poller.stopped).to eq(true)
+    after(:each) do
+      poller.close
     end
 
-    it "should try again on a 503" do
-      expect(resp).to receive(:status).and_return(503)
-      expect(timer).to receive(:execute)
-      poller.poll
-      expect(poller.cancel).to eq(false)
+    context "conn fails with timeout error" do
+      let(:interval) { 20 }
+
+      it "should continue to poll and not cancel if an exception is thrown" do
+        expect(Digest::SHA256).to receive(:hexdigest).and_return("12345")
+        expect(conn).to receive(:get).with("features?apiKey=api_key&contextSha=12345",
+                                           {},
+                                           hash_including("x-featurehub" => "blah"))
+                                     .and_throw(Faraday::TimeoutError)
+        expect(logger).to receive(:error).with("featurehub: failed to connect or similar error uncaught throw Faraday::TimeoutError")
+
+        expect(timer).to receive(:execute) # starts the next timer going
+        expect(repo).not_to receive(:notify)
+
+        poller.context_change("blah")
+
+        expect(poller.cancel).to eq(false)
+      end
     end
 
-    it "should cancel on a 404" do
-      expect(resp).to receive(:status).and_return(404)
-      expect(repo).to receive(:notify).with("failed", nil, "polling")
-      expect(logger).to receive(:error)
-      expect(timer).to receive(:shutdown)
-      poller.poll
-      expect(poller.cancel).to eq(true)
-    end
+    context "with a different header" do
+      let(:interval) { 20 }
 
-    context "should start polling and process a 200 response" do
-      before do
+      it "should allow me to set a different header" do
+        expect(Digest::SHA256).to receive(:hexdigest).and_return("12345")
+
+        expect(conn).to receive(:get).with("features?apiKey=api_key&contextSha=12345",
+                                           {},
+                                           hash_including("x-featurehub" => "blah"))
+                                     .and_return(resp)
+
         expect(resp).to receive(:status).and_return(200)
+        expect(resp).to receive(:headers).and_return({}).twice
+        expect(resp).to receive(:body).and_return("[]")
         expect(timer).to receive(:execute)
+
+        poller.context_change("blah")
+        expect(poller.sha_context).to eq("12345")
+      end
+    end
+
+    # test essentially works, can't figure out how to get it to match
+    # it "should pick up the etag header and try and use it again" do
+    #   expect(conn).to receive(:get).with("features?apiKey=api_key",
+    #                                      request: { timeout: 12 },
+    #                                      headers: hash_including(accept: "application/json"))
+    #                                .and_return(resp)
+    #   expect(resp).to receive(:status).and_return(200).at_least(:twice)
+    #   expect(resp).to receive(:headers).and_return({"etag" => "12345"}).at_least(:twice)
+    #   expect(resp).to receive(:body).and_return("[]").twice
+    #   expect(timer).to receive(:execute).twice
+    #   expect(timer).to receive(:shutdown)
+    #   poller.poll
+    #   poller.close
+    #   expect(conn).to receive(:get).with("features?apiKey=api_key",
+    #                                      request: { timeout: 12 },
+    #                                      headers: hash_including("if-none-matches" => "12345"))
+    #                                .and_return(resp).once
+    #   poller.poll
+    # end
+
+    context "setting a 20 second interval" do
+      let(:interval) { 20 }
+
+      before do
+        expect(conn).to receive(:get).with("features?apiKey=api_key&contextSha=0",
+                                           {},
+                                           hash_including(accept: "application/json"))
+                                     .and_return(resp)
       end
 
-      context "with an etag header" do
+      it "should start polling and process a 236 response" do
+        expect(resp).to receive(:status).and_return(236)
+        expect(resp).to receive(:headers).and_return({}).twice
+        expect(resp).to receive(:body).and_return("[]")
+        expect(timer).to receive(:shutdown)
+
+        poller.poll
+
+        expect(poller.stopped).to eq(true)
+      end
+
+      it "should try again on a 503" do
+        expect(resp).to receive(:status).and_return(503)
+        expect(timer).to receive(:execute)
+        poller.poll
+        expect(poller.cancel).to eq(false)
+      end
+
+      it "should cancel on a 404" do
+        expect(resp).to receive(:status).and_return(404)
+        expect(repo).to receive(:notify).with("failed", nil, "polling")
+        expect(logger).to receive(:error)
+        expect(timer).to receive(:shutdown)
+        poller.poll
+        expect(poller.cancel).to eq(true)
+      end
+
+      context "should start polling and process a 200 response" do
         before do
-          expect(resp).to receive(:headers).and_return({ "etag" => "abcd" }).twice
+          expect(resp).to receive(:status).and_return(200)
+          expect(timer).to receive(:execute)
         end
 
-        it "and no data" do
-          expect(resp).to receive(:body).and_return("[]")
+        context "with an etag header" do
+          before do
+            expect(resp).to receive(:headers).and_return({ "etag" => "abcd" }).twice
+          end
 
-          poller.poll
+          it "and no data" do
+            expect(resp).to receive(:body).and_return("[]")
 
-          expect(poller.etag).to eq("abcd")
-        end
-      end
+            poller.poll
 
-      context "with an cache control header" do
-        it "that does not contain max-age" do
-          expect(resp).to receive(:headers)
-            .and_return({ "cache-control" => "no-store, no-age, bark, bark, bark" })
-            .at_least(:once)
-          expect(resp).to receive(:body).and_return("[]")
-
-          poller.poll
-
-          expect(poller.interval).to eq(interval)
+            expect(poller.etag).to eq("abcd")
+          end
         end
 
-        it "and the timer is created with it and its interval is set correctly" do
-          expect(resp).to receive(:headers)
-            .and_return({ "cache-control" => "no-store, max-age=24, bark, bark, bark" })
-            .at_least(:once)
-          expect(resp).to receive(:body).and_return("[]")
-          expect(timer).to receive(:execution_interval=).with(24)
+        context "with an cache control header" do
+          it "that does not contain max-age" do
+            expect(resp).to receive(:headers)
+              .and_return({ "cache-control" => "no-store, no-age, bark, bark, bark" })
+              .at_least(:once)
+            expect(resp).to receive(:body).and_return("[]")
 
-          poller.poll
+            poller.poll
+
+            expect(poller.interval).to eq(interval)
+          end
+
+          it "and the timer is created with it and its interval is set correctly" do
+            expect(resp).to receive(:headers)
+              .and_return({ "cache-control" => "no-store, max-age=24, bark, bark, bark" })
+              .at_least(:once)
+            expect(resp).to receive(:body).and_return("[]")
+            expect(timer).to receive(:execution_interval=).with(24)
+
+            poller.poll
+          end
         end
-      end
 
-      context "with no headers" do
-        before do
-          expect(resp).to receive(:headers).and_return({}).twice
-        end
+        context "with no headers" do
+          before do
+            expect(resp).to receive(:headers).and_return({}).twice
+          end
 
-        it "and no data" do
-          expect(resp).to receive(:body).and_return("[]")
+          it "and no data" do
+            expect(resp).to receive(:body).and_return("[]")
 
-          poller.poll
-        end
+            poller.poll
+          end
 
-        it "and have environments" do
-          expect(resp).to receive(:body).and_return('[{"features": []}, {"features": []}]')
-          expect(repo).to receive(:notify).with("features", [], "polling").twice
-          poller.poll
+          it "and have environments" do
+            expect(resp).to receive(:body).and_return('[{"features": []}, {"features": []}]')
+            expect(repo).to receive(:notify).with("features", [], "polling").twice
+            poller.poll
+          end
         end
       end
     end
