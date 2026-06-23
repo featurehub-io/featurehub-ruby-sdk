@@ -8,7 +8,7 @@ ruby "3.3.10"
 gem "dalli", "~> 4"
 gem "featurehub-sdk", path: "../.."
 # this is just to test 1.x works OK
-gem "faraday", "~> 1"
+gem "faraday", "~> 2"
 gem "rack"
 gem "redis"
 gem "sinatra"
