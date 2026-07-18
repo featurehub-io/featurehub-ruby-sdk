@@ -2,6 +2,7 @@
 
 require "faraday"
 require "faraday/net_http"
+require "faraday/gzip"
 require "json"
 require "concurrent-ruby"
 require "digest/sha2"
@@ -174,6 +175,8 @@ module FeatureHub
         @url = "features?#{api_key_cat}"
         @timeout = ENV.fetch("FEATUREHUB_POLL_HTTP_TIMEOUT", "12").to_i
         @conn = Faraday.new(url: @edge_url) do |f|
+          # support whatever compression is available from server
+          f.request :gzip
           f.adapter :net_http
           f.options.timeout = @timeout
         end

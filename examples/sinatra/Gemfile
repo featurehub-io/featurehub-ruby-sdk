@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-ruby "3.3.10"
+ruby "3.3.11"
 
 # 5 prevents us using ruby 3.2 which while EOL is still in our build
 gem "dalli", "~> 4"
