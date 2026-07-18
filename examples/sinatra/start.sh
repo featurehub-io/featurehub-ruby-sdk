@@ -16,5 +16,5 @@ PORT=8099
 if [[ "$2" == "sec" ]];  then
   PORT=8100
 fi
-
+mkdir -p logs
 bundle exec thin -R thin.ru -a 0.0.0.0 -p $PORT start
