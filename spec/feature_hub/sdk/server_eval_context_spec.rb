@@ -7,7 +7,7 @@ RSpec.describe FeatureHub::Sdk::ServerEvalFeatureContext do
     let(:ctx) {  FeatureHub::Sdk::ServerEvalFeatureContext.new(repo, edge) }
 
     it "should let me set context and they appear as headers" do
-      expect(edge).to receive(:context_change).with("userkey=me%40me.com&session=123+45&pinky=ponky")
+      expect(edge).to receive(:context_change).with("pinky=ponky,session=123%2045,userkey=me%40me.com")
       expect(repo).to receive(:not_ready!)
       ctx.user_key("me@me.com").session_key("123 45").attribute_value("pinky", ["ponky"]).build
     end
