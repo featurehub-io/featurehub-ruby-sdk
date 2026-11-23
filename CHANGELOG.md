@@ -1,3 +1,14 @@
+## [Unreleased]
+
+- fix: a server-evaluated context with more than one attribute was sent to Edge as a single attribute. The
+`x-featurehub` header joined attributes with `&`, but Edge splits it on `,`, so `userkey=fred&country=nz` was
+read as the user key `fred&country=nz` and rollout strategies matched against the wrong context. Only the first
+value of a multi-valued attribute was sent, too.
+- the `x-featurehub` header and `contextSha` are now built exactly as the FeatureHub protocol specifies, so every
+SDK sends the same values for the same context: keys and values are encoded as JavaScript's `encodeURIComponent`
+does (a space is `%20`, no longer `+`), attributes are sorted, and an empty context sends `contextSha=0` and no
+header.
+
 ## [2.1.1] - 2026-05-01
 
 - expose Feature Properties capability

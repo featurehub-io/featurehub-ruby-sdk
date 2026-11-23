@@ -5,7 +5,6 @@ require "faraday/net_http"
 require "faraday/gzip"
 require "json"
 require "concurrent-ruby"
-require "digest/sha2"
 
 module FeatureHub
   module Sdk
@@ -47,7 +46,7 @@ module FeatureHub
         return if new_header == @context
 
         @context = new_header
-        @sha_context = Digest::SHA256.hexdigest(@context)
+        @sha_context = ContextHeader.context_sha(@context)
 
         if active
           get_updates
@@ -105,7 +104,7 @@ module FeatureHub
           "X-SDK-Version": FeatureHub::Sdk::VERSION
         }
 
-        headers["x-featurehub"] = @context unless @context.nil?
+        headers["x-featurehub"] = @context unless @context.nil? || @context.empty?
         headers["if-none-match"] = @etag unless @etag.nil?
 
         @logger&.debug("polling for #{url}")
@@ -163,11 +162,7 @@ module FeatureHub
       end
 
       def determine_request_url
-        if @context.nil?
-          "#{@url}&contextSha=0"
-        else
-          "#{@url}&contextSha=#{@sha_context}"
-        end
+        "#{@url}&contextSha=#{@sha_context || "0"}"
       end
 
       def generate_url
